@@ -13,38 +13,38 @@ import axios from "axios";
 import { API } from "@/app/utils/helpers";
 import { PluginData } from "./layout";
 
-const plugins = [
-  {
-    _id: "1",
-    type: "Xmind",
-    expireson: "2025-12-10",
-  },
-  {
-    _id: "2",
-    type: "Chat",
-    expireson: "2025-12-10",
-  },
-  {
-    _id: "3",
-    type: "Drive",
-    expireson: "2025-12-10",
-  },
-  {
-    _id: "4",
-    type: "Task Management",
-    expireson: "2025-12-10",
-  },
-  {
-    _id: "5",
-    type: "Project Management ihefwik uhewduhwihbwejd",
-    expireson: "2025-12-10",
-  },
-  {
-    _id: "6",
-    type: "Calendar",
-    expireson: "2025-12-10",
-  },
-];
+// const plugins = [
+//   {
+//     _id: "1",
+//     type: "Xmind",
+//     expireson: "2025-12-10",
+//   },
+//   {
+//     _id: "2",
+//     type: "Chat",
+//     expireson: "2025-12-10",
+//   },
+//   {
+//     _id: "3",
+//     type: "Drive",
+//     expireson: "2025-12-10",
+//   },
+//   {
+//     _id: "4",
+//     type: "Task Management",
+//     expireson: "2025-12-10",
+//   },
+//   {
+//     _id: "5",
+//     type: "Project Management ihefwik uhewduhwihbwejd",
+//     expireson: "2025-12-10",
+//   },
+//   {
+//     _id: "6",
+//     type: "Calendar",
+//     expireson: "2025-12-10",
+//   },
+// ];
 const PageContent = () => {
   const dispatch = useAppDispatch();
   const searchparams = useSearchParams();
@@ -52,10 +52,15 @@ const PageContent = () => {
   const [serverId, setServerId] = useState("");
   const [dbName, setDbName] = useState("");
   const { openPluginwindow } = useAppSelector((state) => state.params);
+
   useEffect(() => {
     setPlugin(searchparams.get("plugin") || "");
-    setServerId(searchparams.get("serverId") || "");
-    setDbName(searchparams.get("dbName") || "");
+    setServerId(
+      searchparams.get("serverId") || sessionStorage.getItem("serverId") || ""
+    );
+    setDbName(
+      searchparams.get("dbName") || sessionStorage.getItem("dbName") || ""
+    );
   }, [searchparams]);
 
   const { data } = useAuthContext();
@@ -124,7 +129,8 @@ const PageContent = () => {
         >
           {plugindata?.map((d, i) => (
             <Link
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault()
                 dispatch(setOpenPluginwindow(true));
               }}
               href={{

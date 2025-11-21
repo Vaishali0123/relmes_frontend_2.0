@@ -30,7 +30,7 @@ import {
 import axios from "axios";
 import { API } from "@/app/utils/helpers";
 import toast, { Toaster } from "react-hot-toast";
-import { useAuthContext } from "@/app/auth/components/auth";
+import { useAuthContext } from "@/app/(webApp)/auth/components/auth";
 
 interface TeamMember {
   id: string;

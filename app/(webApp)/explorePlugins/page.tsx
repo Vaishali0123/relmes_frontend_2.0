@@ -5,17 +5,17 @@ import Link from "next/link";
 import { Search, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { mockPlugins, type Plugin } from "./data/plugins";
 
-const categories = [
-  "All",
-  "Analytics",
-  "Security",
-  "Backup",
-  "Performance",
-  "Communication",
-  "Database",
-  "Automation",
-  "API",
-];
+// const categories = [
+//   "All",
+//   "Analytics",
+//   "Security",
+//   "Backup",
+//   "Performance",
+//   "Communication",
+//   "Database",
+//   "Automation",
+//   "API",
+// ];
 
 export default function MarketplacePage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -23,6 +23,7 @@ export default function MarketplacePage() {
   const [chartTab, setChartTab] = useState<"free" | "grossing" | "paid">(
     "free"
   );
+  const [categories, setCategories] = useState<string[]>([]);
   const carouselRef = useRef<HTMLDivElement>(null);
 
   const featuredPlugins = mockPlugins.filter((p) => p.featured).slice(0, 3);
@@ -220,7 +221,7 @@ export default function MarketplacePage() {
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-              Top grossing
+              Top Rated
             </button>
             <button
               onClick={() => setChartTab("paid")}
@@ -236,7 +237,9 @@ export default function MarketplacePage() {
 
           {/* Chart List */}
           <div className="space-y-1">
-            {filteredPlugins.slice(0, 9).map((plugin, index) => (
+
+            {filteredPlugins?.length>0?
+            filteredPlugins.slice(0, 9).map((plugin, index) => (
               <Link
                 key={plugin.id}
                 href={`/marketPlace/plugins/${plugin.id}`}
@@ -271,7 +274,13 @@ export default function MarketplacePage() {
                   add
                 </button>
               </Link>
-            ))}
+            )):(
+              <div className="text-center py-12">
+                <p className="text-gray-500">
+                  No plugins available right now
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -319,13 +328,13 @@ export default function MarketplacePage() {
           </div>
         )}
 
-        {filteredPlugins.length === 0 && (
+        {/* {filteredPlugins.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-500">
               No plugins found. Try adjusting your search or filters.
             </p>
           </div>
-        )}
+        )} */}
       </div>
 
       <style jsx>{`

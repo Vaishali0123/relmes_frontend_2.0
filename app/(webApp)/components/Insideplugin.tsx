@@ -18,10 +18,13 @@ interface Server {
   members?: [];
 }
 
-export default function InsidePlugin() {
+interface InsidePluginProps {
+  pluginId: string;
+}
+
+export default function InsidePlugin({ pluginId }: InsidePluginProps) {
   const params = useParams();
   const router = useRouter();
-  const pluginId = "3";
   const { data } = useAuthContext();
   const [selectedPlan, setSelectedPlan] = useState<
     "basic" | "pro" | "enterprise"

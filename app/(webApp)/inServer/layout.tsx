@@ -351,7 +351,7 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
 
         <Tooltip.Provider delayDuration={100}>
           <div
-            className={`h-[50px] ${
+            className={`h-[50px]  ${
               openPluginwindow ? "hidden" : ""
             } absolute bottom-6`}
           >
@@ -366,13 +366,13 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
                 <IoSearch className="text-[20px]" />
               </div>
 
-              {/* ➕ Add Server */}
+              {/* ➕ Add Plugins */}
               <div className="h-[35px] rounded-[10px] flex items-center px-2 justify-between">
                 <Tooltip.Root>
                   <Tooltip.Trigger asChild>
                     <div
                       className="flex pn:max-sm:hidden items-center gap-2 cursor-pointer"
-                      onClick={() => router.push("../serverCreation")}
+                      onClick={() => router.push("../explorePlugins")}
                     >
                       <TbTournament className="text-[20px] hover:opacity-80 hover:scale-110 transition-all duration-300" />
                     </div>
@@ -381,9 +381,9 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
                     <Tooltip.Content
                       side="top"
                       sideOffset={6}
-                      className="px-3 py-1.5 text-xs text-black rounded-xl shadow-lg border border-white/20 bg-white/10 backdrop-blur-md animate-in fade-in-50"
+                      className="px-3 py-1.5 text-xs text-white  rounded-xl shadow-lg border border-white/20 bg-[#44444433] backdrop-blur-md animate-in fade-in-50"
                     >
-                      Create Server
+                      Add Plugins
                       <Tooltip.Arrow className="fill-white/20" />
                     </Tooltip.Content>
                   </Tooltip.Portal>
@@ -434,7 +434,7 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
                       <Tooltip.Content
                         side="top"
                         sideOffset={6}
-                        className="px-3 py-1.5 text-xs text-white rounded-xl shadow-lg border border-white/20 bg-white/10 backdrop-blur-md animate-in fade-in-50"
+                        className="px-3 py-1.5 text-xs text-white rounded-xl shadow-lg border border-white/20 bg-[#44444433] backdrop-blur-md animate-in fade-in-50"
                       >
                         {item?.type}
                         <Tooltip.Arrow className="fill-white/20" />
@@ -461,14 +461,14 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
                   <Tooltip.Content
                     side="top"
                     sideOffset={6}
-                    className="px-3 py-1.5 text-xs text-white rounded-xl shadow-lg border border-white/20 bg-white/10 backdrop-blur-md animate-in fade-in-50"
+                    className="px-3 py-1.5 text-xs text-white rounded-xl shadow-lg border border-white/20 bg-[#44444433] backdrop-blur-md animate-in fade-in-50"
                   >
                     Members
                     <Tooltip.Arrow className="fill-white/20" />
                   </Tooltip.Content>
                 </Tooltip.Portal>
               </Tooltip.Root>
-
+{/* Settings */}
               <Tooltip.Provider delayDuration={0}>
                 <Tooltip.Root>
                   <Tooltip.Trigger asChild>
@@ -482,7 +482,7 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
                       side="top"
                       align="center"
                       sideOffset={12}
-                      className="z-50 w-[280px] bg-[#44444433] shadow-lg backdrop-blur-xl border border-white/10 rounded-2xl p-4 animate-fadeIn"
+                      className="z-50 w-[280px] bg-[#44444433] backdrop-blur-xl border border-white/10 rounded-2xl p-4 animate-fadeIn"
                     >
                       <div className="space-y-4">
                         {/* Account Info */}
@@ -516,7 +516,7 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
                             </span>
                             <div className="flex items-center gap-1">
                               <span className="text-white text-sm">
-                                3.1 left
+                               100% left
                               </span>
                               <FiChevronDown className="w-4 h-4 text-gray-400" />
                             </div>

@@ -55,7 +55,7 @@ const Navbar = () => {
       dbName: string;
       name?: string;
       icon?: string;
-      members?: [];
+      members?: number;
     }[]
   >([]);
   const [title, setTitle] = useState("");
@@ -110,7 +110,7 @@ const Navbar = () => {
     if (userId) {
       getUserServers();
     }
-  }, []);
+  }, [userId]);
   const addTask = async () => {
     if (title.trim() === "") return;
     const newTask = {
@@ -266,17 +266,18 @@ const Navbar = () => {
                   >
                     <TbServerSpark className="text-[20px]" />
                     <div className="pn:max-sm:text-[12px]">
-                      {path.startsWith("/inServer") ? "Plugins" : "Server"}
+                      {path.startsWith("/inServer") ? "Plugins" : "Your Realms"}
                     </div>
                   </Link>
                   {/* add server */}
-                  <div className="flex  pn:max-sm:hidden items-center gap-2">
+                  <div className="flex cursor-pointer pn:max-sm:hidden items-center gap-2">
                     <IoMdAddCircleOutline
                       onClick={() => {
                         router.push("../serverCreation");
                       }}
                       className="text-[20px]"
                     />
+
                     {/* <FaAngleDown className="text-[20px]" /> */}
                   </div>
                 </div>
@@ -346,10 +347,9 @@ const Navbar = () => {
                             <div className=" leading-4">
                               <div className="text-[13px]">{server?.name}</div>
                               <div className="text-[10px] text-slate-700">
-                                {server?.members?.length &&
-                                server?.members?.length > 1
-                                  ? server?.members?.length + " Members"
-                                  : server?.members?.length + " Member"}
+                                {server?.members && server?.members > 1
+                                  ? server?.members + " Members"
+                                  : server?.members + " Member"}
                               </div>
                             </div>
                           </div>
@@ -440,6 +440,21 @@ const Navbar = () => {
                   </div>
                 </div>
               )}
+              {/* Explore Plugins */}
+              <Link
+                href="../explorePlugins"
+                className={`${
+                  path.startsWith("/serverCreation") ||
+                  (path.startsWith("/inServer") && "hidden")
+                } sm:h-[40px] sm:w-full rounded-2xl flex items-center px-2 justify-between`}
+              >
+                <div className="flex items-center pn:max-sm:flex-col pn:max-sm:justify-center  gap-2">
+                  <CiViewList className="text-[20px]" />
+                  <div className="pn:max-sm:text-[12px] pn:max-sm:">
+                    Explore Plugins
+                  </div>
+                </div>
+              </Link>
               {/* billings  */}
               <Link
                 href="../m&b"
@@ -589,20 +604,20 @@ const Navbar = () => {
             >
               {/* dark/light Modes  */}
               <div className="border-[#D4D4D4] border-t"></div>
-              <div className=" h-[40px]  w-full rounded-2xl flex items-center px-2 justify-between">
+              {/* <div className=" h-[40px]  w-full rounded-2xl flex items-center px-2 justify-between">
                 <div className="flex items-center gap-2">
                   <FiSun className="text-[20px]" />
                   <div>Light mode</div>
                 </div>
-              </div>
+              </div> */}
 
               {/* Updates & FAQ  */}
-              <div className=" h-[40px]  w-full rounded-2xl flex items-center px-2 justify-between">
+              {/* <div className=" h-[40px]  w-full rounded-2xl flex items-center px-2 justify-between">
                 <div className="flex items-center gap-2">
                   <MdOutlineTipsAndUpdates className="text-[20px]" />
                   <div>Updates & FAQ</div>
                 </div>
-              </div>
+              </div> */}
               {/* Log out  */}
               <div className=" h-[40px] w-full rounded-2xl flex items-center px-2 justify-between">
                 <div
@@ -610,7 +625,7 @@ const Navbar = () => {
                   className="flex text-red-500 items-center gap-2"
                 >
                   <FiLogOut className="text-[20px]" />
-                  <div>Log out</div>
+                  <div className="font-semibold">Log out</div>
                 </div>
               </div>
               {/* Popup Modal */}

@@ -23,7 +23,7 @@ import { User, Mail, Phone, UserCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { API, errorHandler } from "@/app/utils/helpers";
 import axios from "axios";
-import { useAuthContext, UserData } from "@/app/auth/components/auth";
+import { useAuthContext, UserData } from "@/app/(webApp)/auth/components/auth";
 
 const SignUp = () => {
   // const navigate = useRouter();

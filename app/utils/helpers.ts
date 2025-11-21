@@ -61,6 +61,15 @@ export const formatNumber = (number: number) => {
     return number.toString();
   }
 };
+export const formatDateDay = (dateString:Date | undefined) => {
+  if (!dateString) return "—";
+  return new Date(dateString).toLocaleDateString("en-US", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
 
 // You can remove DateDifference if you don't need it or use it like below
 // interface DateDifference {

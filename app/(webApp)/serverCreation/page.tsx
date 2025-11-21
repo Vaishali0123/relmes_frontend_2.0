@@ -16,6 +16,7 @@ import { setStep } from "@/app/redux/slices/paramsSlice";
 import MarketPlace from "../components/MarketPlace";
 import { BsPlug } from "react-icons/bs";
 import { TbServer2 } from "react-icons/tb";
+import axios from "axios";
 
 type Plugin = {
   _id: string;
@@ -127,6 +128,10 @@ const ServerCreation = () => {
       return;
     }
 
+    // Find the plugin to get its type
+    const pluginData = plugins.find((p: any) => p._id === pluginId);
+    const pluginType = pluginData?.type || pluginData?.name || "Unknown";
+
     setSelectedPlugins((prev) => {
       const exists = prev.find((p) => p._id === pluginId);
       if (exists) {
@@ -137,6 +142,7 @@ const ServerCreation = () => {
                 ...p,
                 duration: pluginDuration,
                 price: price,
+                // membershipName: selectedServerPlan?.name || membershipId,
                 membershipId: membershipId,
               }
             : p
@@ -147,10 +153,10 @@ const ServerCreation = () => {
           ...prev,
           {
             _id: pluginId,
-            // type,
+            type: pluginType,
             duration: pluginDuration,
             price,
-            membershipId: membershipId,
+            membershipName: selectedServerPlan?.name || membershipId,
           },
         ];
       }
@@ -162,15 +168,15 @@ const ServerCreation = () => {
   };
 
   const createServer = async () => {
-    if (!slug.trim()) {
-      toast.error("Please enter a server initialization name (slug)");
-      return;
-    }
+    // if (!slug.trim()) {
+    //   toast.error("Please enter a server initialization name (slug)");
+    //   return;
+    // }
 
     try {
       const formData = new FormData();
       formData.append("name", name);
-      formData.append("slug", slug);
+      // formData.append("slug", slug);
       formData.append("description", description);
       // formData.append("storageallotted", storageAllotted.toString());
       if (data?.id) {
@@ -355,7 +361,7 @@ const ServerCreation = () => {
                       className="mt-1"
                     />
                   </div>
-                  <div>
+                  {/* <div>
                     <Label htmlFor="serverSlug">Server Type</Label>
                     <Input
                       id="serverSlug"
@@ -364,7 +370,7 @@ const ServerCreation = () => {
                       placeholder="e.g., my-server-name"
                       className="mt-1"
                     />
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* Description */}
@@ -534,13 +540,16 @@ const ServerCreation = () => {
               </CardContent>
             </div>
 
-            {step < 3 &&
+            {step <= 3 &&
               (selectedServerPlan?.price || 0) +
                 selectedPlugins.reduce((sum, p) => sum + p.price, 0) >
                 0 && (
                 <Button
-                  onClick={() => dispatch(setStep(step + 1))}
-                  className="w-full mt-4 absolute bottom-4 right-4 bg-[#F9D199]"
+                  onClick={() =>
+                    // dispatch(setStep(step + 1)
+                    createServer()
+                  }
+                  className="w-[400px] self-center flex mt-4 absolute bottom-4 right-4 bg-[#F9D199]"
                   disabled={
                     step === 1 && (!name || !slug.trim() || !selectedServerPlan)
                   }

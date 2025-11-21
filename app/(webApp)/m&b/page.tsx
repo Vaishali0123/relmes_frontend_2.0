@@ -10,9 +10,12 @@ import {
   Activity,
   MoreVertical,
   Bell,
+  Calendar,
+  CalendarCheck,
+  Timer,
 } from "lucide-react";
 import axios from "axios";
-import { API } from "../../utils/helpers";
+import { API, formatDateDay } from "../../utils/helpers";
 import { useAuthContext } from "../auth/components/auth";
 import Link from "next/link";
 
@@ -27,6 +30,11 @@ interface Server {
   cpuUsage: number;
   memoryUsage: number;
   dbName: string;
+  storageallotted: number;
+  storageused: number;
+  icon: string;
+  expireson?: Date;
+  broughton?: Date;
 }
 
 const ServerManagement: React.FC = () => {
@@ -46,87 +54,6 @@ const ServerManagement: React.FC = () => {
   const { data } = useAuthContext();
   const userId = data?.id;
 
-  // Mock data for joined servers
-  const joinedServers: Server[] = [
-    {
-      id: "9",
-      name: "Client Portal Server",
-      description: "External client access portal",
-      status: "online",
-      type: "public",
-      members: 25,
-      lastActive: "5 min ago",
-      cpuUsage: 41,
-      memoryUsage: 55,
-    },
-    {
-      id: "10",
-      name: "Shared Analytics",
-      description: "Cross-team analytics platform",
-      status: "online",
-      type: "public",
-      members: 18,
-      lastActive: "8 min ago",
-      cpuUsage: 52,
-      memoryUsage: 71,
-    },
-    {
-      id: "11",
-      name: "Testing Sandbox",
-      description: "Collaborative testing environment",
-      status: "online",
-      type: "private",
-      members: 11,
-      lastActive: "12 min ago",
-      cpuUsage: 29,
-      memoryUsage: 46,
-    },
-    {
-      id: "12",
-      name: "Documentation Hub",
-      description: "Team documentation server",
-      status: "maintenance",
-      type: "public",
-      members: 22,
-      lastActive: "45 min ago",
-      cpuUsage: 5,
-      memoryUsage: 18,
-    },
-    {
-      id: "13",
-      name: "Monitoring Dashboard",
-      description: "System monitoring and alerts",
-      status: "online",
-      type: "private",
-      members: 9,
-      lastActive: "2 min ago",
-      cpuUsage: 38,
-      memoryUsage: 52,
-    },
-    {
-      id: "14",
-      name: "API Gateway",
-      description: "Centralized API management",
-      status: "online",
-      type: "public",
-      members: 16,
-      lastActive: "1 min ago",
-      cpuUsage: 63,
-      memoryUsage: 74,
-    },
-    {
-      id: "15",
-      name: "Cache Server",
-      description: "Redis caching layer",
-      status: "offline",
-      type: "private",
-      members: 3,
-      lastActive: "3 hours ago",
-      cpuUsage: 0,
-      memoryUsage: 12,
-    },
-  ];
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case "online":
@@ -139,7 +66,11 @@ const ServerManagement: React.FC = () => {
         return "text-gray-600 bg-gray-100";
     }
   };
-
+  const isExpiredSoon = (expires: Date | string | undefined) => {
+    if (!expires) return false;
+    const diff = new Date(expires).getTime() - new Date().getTime();
+    return diff < 1000 * 60 * 60 * 24 * 7; // less than 7 days
+  };
   const getUsageColor = (usage: number) => {
     if (usage < 50) return "bg-green-500";
     if (usage < 80) return "bg-yellow-500";
@@ -149,7 +80,7 @@ const ServerManagement: React.FC = () => {
     try {
       if (!userId) return;
       const res = await axios.get(`${API}/getUserServers/${userId}`);
-      console.log(res?.data);
+      console.log(res?.data, "jbjh");
       setServers(res?.data);
     } catch (e) {
       console.log(e);
@@ -165,83 +96,143 @@ const ServerManagement: React.FC = () => {
     showActions = false,
   }) => (
     <Link
+      onClick={() => {
+        sessionStorage.setItem("serverId", server?._id);
+        sessionStorage.setItem("dbName", encodeURIComponent(server?.dbName));
+      }}
       href={{
         pathname: "../inServer",
-        query: {
-          serverId: server?._id,
-          dbName: encodeURIComponent(server?.dbName),
-        },
+        // query: {
+        //   serverId: server?._id,
+        //   dbName: encodeURIComponent(server?.dbName),
+        // },
       }}
-      className=" border border-[#f4f4f4da] cursor-pointer rounded-2xl p-6 hover:shadow-md transition-shadow duration-200"
+      className=" border border-[#f4f4f4da] gap-2 flex flex-col cursor-pointer rounded-2xl p-6 hover:scale-105 hover:duration-300 hover:transition-all transition-shadow duration-200"
     >
-      <div className="flex items-start justify-between mb-4">
+      {/* Name & Description */}
+      <div className="flex  h-[25%] items-start justify-between ">
         <div className="flex  items-center space-x-3">
-          <div className="flex-shrink-0">
+          {/* <div className="flex-shrink-0">
             {server?.type === "public" ? (
               <Globe className="w-5 h-5 text-blue-600" />
             ) : (
               <Lock className="w-5 h-5 text-gray-600" />
             )}
-          </div>
+          </div> */}
           <div>
-            <h3 className="font-semibold text-gray-900 text-sm">
-              {server?.name}
-            </h3>
+            <div className="flex items-center gap-2">
+              <img
+                src={server?.icon}
+                alt="server icon"
+                className="h-[35px] w-[35px] rounded-[14px] object-cover"
+              />
+
+              <h3 className="font-semibold text-gray-900 text-sm">
+                {server?.name}
+              </h3>
+            </div>
             <p className="text-xs text-gray-500 mt-1">{server?.description}</p>
           </div>
         </div>
         {showActions && (
-          <button className="text-gray-400 hover:text-gray-600">
+          <button className="text-gray-400  hover:text-gray-600">
             <MoreVertical className="w-4 h-4" />
           </button>
         )}
       </div>
-
-      <div className="flex items-center justify-between mb-3">
-        <span
+      {/* Members */}
+      <div className="flex items-center py-1  justify-between">
+        {/* <span
           className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
             server?.status
           )}`}
         >
           {server?.status?.charAt(0)?.toUpperCase() + server?.status?.slice(1)}
-        </span>
-        <div className="flex items-center text-xs text-gray-500">
+        </span> */}
+
+        <div className="flex items-center   text-xs text-gray-500">
           <Users className="w-3 h-3 mr-1" />
-          {server?.members}
+          {server?.members} {server?.members > 1 ? "members" : "member"}
         </div>
       </div>
-
-      <div className="space-y-2 mb-3">
+      {/* Storage Used */}
+      <div className="space-y-2  h-[20%]">
         <div className="flex justify-between items-center text-xs">
-          <span className="text-gray-600">CPU</span>
-          <span className="font-medium">{server?.cpuUsage}%</span>
+          <span className="text-gray-600">Storage Used</span>
+          <span className="font-medium">{server?.storageallotted} GB</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-1.5">
           <div
-            className={`h-1.5 rounded-full ${getUsageColor(server?.cpuUsage)}`}
-            style={{ width: `${server?.cpuUsage}%` }}
+            className={`h-1.5 rounded-full ${getUsageColor(
+              server?.storageused
+            )}`}
+            style={{ width: `${server?.storageused}%` }}
           ></div>
         </div>
-        <div className="flex justify-between items-center text-xs">
+        {/* <div className="flex justify-between items-center text-xs">
           <span className="text-gray-600">Memory</span>
-          <span className="font-medium">{server?.memoryUsage}%</span>
-        </div>
-        <div className="w-full bg-gray-200 rounded-full h-1.5">
+          <span className="font-medium">{server?.memoryUsage} GB</span>
+        </div> */}
+        {/* <div className="w-full bg-gray-200 rounded-full h-1.5">
           <div
             className={`h-1.5 rounded-full ${getUsageColor(
               server?.memoryUsage
             )}`}
             style={{ width: `${server?.memoryUsage}%` }}
           ></div>
+        </div> */}
+      </div>
+      {/* Add bought on and expires on area */}
+      {/* <div className="flex items-center justify-between text-xs text-gray-500">
+  <div className="flex items-center">
+    <div className="flex items-center">
+      <Calendar className="w-3 h-3 mr-1" />
+      Bought on: {server?.broughton}
+    </div>
+    <div className="flex items-center">
+      <Calendar className="w-3 h-3 mr-1" />
+      Expires on: {server?.expireson}
+    </div>
+  </div>
+</div> */}
+
+      {/* Dates */}
+      <div className="flex h-[45%] justify-evenly    flex-col gap-3 text-xs">
+        {/* Bought On */}
+        <div className="flex items-center gap-2 bg-green-50 text-green-700 px-3 py-1.5 rounded-lg shadow-sm border border-green-100">
+          <CalendarCheck className="w-3.5 h-3.5 text-green-600" />
+          <span className="font-semibold">Created On:</span>
+          <span>{formatDateDay(server?.broughton)}</span>
+        </div>
+
+        {/* Expires On */}
+        <div
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg shadow-sm border
+      ${
+        isExpiredSoon(server?.expireson || new Date())
+          ? "bg-red-50 text-red-700 border-red-100"
+          : "bg-purple-50 text-purple-700 border-purple-100"
+      }
+    `}
+        >
+          <Timer
+            className={`w-3.5 h-3.5 ${
+              isExpiredSoon(server?.expireson || new Date())
+                ? "text-red-600"
+                : "text-purple-600"
+            }`}
+          />
+          <span className="font-semibold">Expires On:</span>
+          <span>{formatDateDay(server?.expireson)}</span>
         </div>
       </div>
 
-      <div className="flex items-center justify-between text-xs text-gray-500">
+      {/* <div className="flex items-center justify-between text-xs text-gray-500">
         <div className="flex items-center">
           <Activity className="w-3 h-3 mr-1" />
           Last active: {server.lastActive}
         </div>
-      </div>
+      </div> */}
     </Link>
   );
 
@@ -275,9 +266,9 @@ const ServerManagement: React.FC = () => {
       </div>
 
       {/* Created by you section */}
-      <div className=" bg-white h-[calc(100vh-100px)] p-4 border border-[#f4f4f4da] rounded-3xl overflow-hidden overflow-y-auto">
+      <div className="  h-[calc(100vh-100px)] p-4 border border-[#f4f4f4da] rounded-3xl overflow-hidden overflow-y-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {joinedServers.slice(0, 7).map((server, index) => (
+          {servers.map((server, index) => (
             <ServerCard key={index} server={server} />
           ))}
         </div>

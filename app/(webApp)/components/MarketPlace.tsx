@@ -26,7 +26,7 @@ const MarketPlace = () => {
     "free"
   );
   const carouselRef = useRef<HTMLDivElement>(null);
-  const [selectedPlugin, setSelectedPlugin] = useState(null);
+  const [selectedPlugin, setSelectedPlugin] = useState<Plugin | null>(null);
   const featuredPlugins = mockPlugins.filter((p) => p.featured).slice(0, 3);
 
   const scrollCarousel = (direction: "left" | "right") => {

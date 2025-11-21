@@ -19,11 +19,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} antialiased`}>
+      <head>
+        <link rel="preconnect" href="https://accounts.google.com" />
         <link
           href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Yatra+One&display=swap"
           rel="stylesheet"
         ></link>
+      </head>
+      <body className={`${inter.variable} antialiased`}>
         <StoreProvider>{children}</StoreProvider>
       </body>
     </html>

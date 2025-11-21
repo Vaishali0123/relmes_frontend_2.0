@@ -18,7 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import { API } from "@/app/utils/helpers";
-import { useAuthContext } from "@/app/auth/components/auth";
+import { useAuthContext } from "@/app/(webApp)/auth/components/auth"
 import Bg from "@/public/Vector.svg"
 
 

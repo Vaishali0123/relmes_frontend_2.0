@@ -47,85 +47,85 @@ const ServerManagement: React.FC = () => {
   const userId = data?.id;
 
   // Mock data for joined servers
-  const joinedServers: Server[] = [
-    {
-      id: "9",
-      name: "Client Portal Server",
-      description: "External client access portal",
-      status: "online",
-      type: "public",
-      members: 25,
-      lastActive: "5 min ago",
-      cpuUsage: 41,
-      memoryUsage: 55,
-    },
-    {
-      id: "10",
-      name: "Shared Analytics",
-      description: "Cross-team analytics platform",
-      status: "online",
-      type: "public",
-      members: 18,
-      lastActive: "8 min ago",
-      cpuUsage: 52,
-      memoryUsage: 71,
-    },
-    {
-      id: "11",
-      name: "Testing Sandbox",
-      description: "Collaborative testing environment",
-      status: "online",
-      type: "private",
-      members: 11,
-      lastActive: "12 min ago",
-      cpuUsage: 29,
-      memoryUsage: 46,
-    },
-    {
-      id: "12",
-      name: "Documentation Hub",
-      description: "Team documentation server",
-      status: "maintenance",
-      type: "public",
-      members: 22,
-      lastActive: "45 min ago",
-      cpuUsage: 5,
-      memoryUsage: 18,
-    },
-    {
-      id: "13",
-      name: "Monitoring Dashboard",
-      description: "System monitoring and alerts",
-      status: "online",
-      type: "private",
-      members: 9,
-      lastActive: "2 min ago",
-      cpuUsage: 38,
-      memoryUsage: 52,
-    },
-    {
-      id: "14",
-      name: "API Gateway",
-      description: "Centralized API management",
-      status: "online",
-      type: "public",
-      members: 16,
-      lastActive: "1 min ago",
-      cpuUsage: 63,
-      memoryUsage: 74,
-    },
-    {
-      id: "15",
-      name: "Cache Server",
-      description: "Redis caching layer",
-      status: "offline",
-      type: "private",
-      members: 3,
-      lastActive: "3 hours ago",
-      cpuUsage: 0,
-      memoryUsage: 12,
-    },
-  ];
+  // const joinedServers: Server[] = [
+  //   {
+  //     id: "9",
+  //     name: "Client Portal Server",
+  //     description: "External client access portal",
+  //     status: "online",
+  //     type: "public",
+  //     members: 25,
+  //     lastActive: "5 min ago",
+  //     cpuUsage: 41,
+  //     memoryUsage: 55,
+  //   },
+  //   {
+  //     id: "10",
+  //     name: "Shared Analytics",
+  //     description: "Cross-team analytics platform",
+  //     status: "online",
+  //     type: "public",
+  //     members: 18,
+  //     lastActive: "8 min ago",
+  //     cpuUsage: 52,
+  //     memoryUsage: 71,
+  //   },
+  //   {
+  //     id: "11",
+  //     name: "Testing Sandbox",
+  //     description: "Collaborative testing environment",
+  //     status: "online",
+  //     type: "private",
+  //     members: 11,
+  //     lastActive: "12 min ago",
+  //     cpuUsage: 29,
+  //     memoryUsage: 46,
+  //   },
+  //   {
+  //     id: "12",
+  //     name: "Documentation Hub",
+  //     description: "Team documentation server",
+  //     status: "maintenance",
+  //     type: "public",
+  //     members: 22,
+  //     lastActive: "45 min ago",
+  //     cpuUsage: 5,
+  //     memoryUsage: 18,
+  //   },
+  //   {
+  //     id: "13",
+  //     name: "Monitoring Dashboard",
+  //     description: "System monitoring and alerts",
+  //     status: "online",
+  //     type: "private",
+  //     members: 9,
+  //     lastActive: "2 min ago",
+  //     cpuUsage: 38,
+  //     memoryUsage: 52,
+  //   },
+  //   {
+  //     id: "14",
+  //     name: "API Gateway",
+  //     description: "Centralized API management",
+  //     status: "online",
+  //     type: "public",
+  //     members: 16,
+  //     lastActive: "1 min ago",
+  //     cpuUsage: 63,
+  //     memoryUsage: 74,
+  //   },
+  //   {
+  //     id: "15",
+  //     name: "Cache Server",
+  //     description: "Redis caching layer",
+  //     status: "offline",
+  //     type: "private",
+  //     members: 3,
+  //     lastActive: "3 hours ago",
+  //     cpuUsage: 0,
+  //     memoryUsage: 12,
+  //   },
+  // ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -149,7 +149,7 @@ const ServerManagement: React.FC = () => {
     try {
       if (!userId) return;
       const res = await axios.get(`${API}/getUserServers/${userId}`);
-      console.log(res?.data);
+      // console.log(res?.data);
       setServers(res?.data);
     } catch (e) {
       console.log(e);
@@ -408,7 +408,7 @@ const ServerManagement: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {joinedServers.slice(0, 7).map((server, index) => (
+            {servers?.slice(0, 7).map((server, index) => (
               <ServerCard key={index} server={server} />
             ))}
           </div>

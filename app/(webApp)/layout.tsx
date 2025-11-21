@@ -153,13 +153,13 @@ export default function MainLayout({
         <div className="flex h-full w-full pn:max-sm:flex-col-reverse relative ">
           <div
             className={`sm:w-[400px]  ${
-             ( path.startsWith("/auth") ||  path.startsWith("/inServer") ) && "hidden"
+              (path.startsWith("/auth") || path.startsWith("/inServer")) &&
+              "hidden"
             } `}
           >
             <div className=" relative pn:max-sm:h-[50px] h-full w-full pn:max-sm:absolute  pn:max-sm:bottom-8 ">
-            <Navbar />
+              <Navbar />
             </div>
-           
           </div>
           <div className="w-full h-full">{children}</div>
         </div>

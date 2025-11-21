@@ -45,6 +45,9 @@ export interface UserData {
   isVerified: boolean; // was "isverified", corrected to match backend key
   role: "individual" | "admin" | "enterprise-admin" | "enterprise-member"; // new
   createdAt: Date;
+  phone: string;
+  email: string;
+  user: UserData;
   // serverscreated: Array<string>;
   // serversjoined: Array<string>;
 }
