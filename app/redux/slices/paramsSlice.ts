@@ -1,5 +1,18 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
+export interface SelectedPlugin {
+  _id: string;
+  name?: string;
+  price: number;
+  description?: string;
+  icon?: string;
+  category?: string;
+  duration?: number;
+  type?: string;
+  membershipName?: string;
+  plan?: string
+}
+
 interface ParamsState {
   userId: string | null;
   username: string | null;
@@ -9,7 +22,10 @@ interface ParamsState {
   language: string;
   step: number;
   pluginframe: boolean;
-  openPluginwindow:boolean;
+  openPluginwindow: string;
+  searchQuery: string;
+  selectedPlugins: SelectedPlugin[];
+  selectedPlugin: SelectedPlugin | null;
 }
 
 const initialState: ParamsState = {
@@ -21,7 +37,10 @@ const initialState: ParamsState = {
   language: "en",
   step: 1,
   pluginframe: false,
-  openPluginwindow:false
+  openPluginwindow: "",
+  searchQuery: "",
+  selectedPlugins: [],
+  selectedPlugin: null
 };
 
 const paramsSlice = createSlice({
@@ -60,8 +79,38 @@ const paramsSlice = createSlice({
     setPluginframe: (state, action: PayloadAction<boolean>) => {
       state.pluginframe = action.payload;
     },
-    setOpenPluginwindow: (state, action: PayloadAction<boolean>) => {
+    setOpenPluginwindow: (state, action: PayloadAction<string>) => {
       state.openPluginwindow = action.payload;
+    },
+    setSearchQuery: (state, action: PayloadAction<string>) => {
+      state.searchQuery = action.payload;
+    },
+    setSelectedPlugins: (state, action: PayloadAction<SelectedPlugin>) => {
+      const exists = state.selectedPlugins.some(
+        (plugin) => plugin._id === action.payload._id
+      );
+      if (!exists) {
+        state.selectedPlugins.push(action.payload);
+      }
+    },
+    setSelectedPlugin: (state, action: PayloadAction<SelectedPlugin | null>) => {
+      state.selectedPlugin = action.payload;
+    },
+    removeSelectedPlugin: (state, action: PayloadAction<string>) => {
+      state.selectedPlugins = state.selectedPlugins.filter(
+        (plugin) => plugin._id !== action.payload
+      );
+    },
+    clearSelectedPlugins: (state) => {
+      state.selectedPlugins = [];
+    },
+    updateSelectedPlugin: (state, action: PayloadAction<SelectedPlugin>) => {
+      const index = state.selectedPlugins.findIndex(
+        (plugin) => plugin._id === action.payload._id
+      );
+      if (index !== -1) {
+        state.selectedPlugins[index] = action.payload;
+      }
     },
   },
 });
@@ -76,7 +125,13 @@ export const {
   resetParams,
   setStep,
   setPluginframe,
-  setOpenPluginwindow
+  setOpenPluginwindow,
+  setSearchQuery,
+  setSelectedPlugins,
+  removeSelectedPlugin,
+  clearSelectedPlugins,
+  setSelectedPlugin,
+  updateSelectedPlugin
 } = paramsSlice.actions;
 
 export default paramsSlice.reducer;

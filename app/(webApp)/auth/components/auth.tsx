@@ -112,6 +112,7 @@ export const AuthContextProvider = ({
         },
         withCredentials: true,
       });
+     
       if (res.data.success) {
         setAuth(true);
         setData(res.data.data);

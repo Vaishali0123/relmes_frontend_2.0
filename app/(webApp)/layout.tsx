@@ -153,7 +153,7 @@ export default function MainLayout({
         <div className="flex h-full w-full pn:max-sm:flex-col-reverse relative ">
           <div
             className={`sm:w-[400px]  ${
-              (path.startsWith("/auth") || path.startsWith("/inServer")) &&
+              (path.startsWith("/auth") || path.startsWith("/relm")) &&
               "hidden"
             } `}
           >

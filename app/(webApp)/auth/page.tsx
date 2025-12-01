@@ -116,15 +116,22 @@ function Page() {
     }
   }, [router]);
 
-  // const [icon, setIcon] = useState<File | null>(null);
-  // const [preview, setPreview] = useState<string | null>(null);
-  // const handleIconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const file = e.target.files?.[0];
-  //   if (file) {
-  //     setIcon(file);
-  //     setPreview(URL.createObjectURL(file)); // generate preview
-  //   }
-  // };
+  const [icon, setIcon] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+
+  const handleIconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setIcon(file);
+      setPreview(URL.createObjectURL(file));
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
   const cookieSetter = (data: UserData, token: string) => {
     try {
       console.log(data, "Data", token, "tkjknj");
@@ -515,6 +522,9 @@ function Page() {
       formData.append("type", referralSource); // Backend expects 'type' field
       if (phone && phone.trim()) {
         formData.append("phone", phone.trim());
+      }
+      if (icon) {
+        formData.append("profilePicUrl", icon);
       }
 
       const response = await axios.post(`${API}/signup`, formData);
@@ -941,9 +951,34 @@ function Page() {
                         <div className="flex-1 h-px bg-gray-300"></div>
                       </div>
 
-                      <div className="h-[60px] w-[100%]  rounded-[20px] flex self-center items-center justify-center">
-                        {/* <img/> */}
-                        <div className="h-[60px] w-[60px] bg-[#f0f0f0] rounded-[20px]"></div>
+                      <div className="flex flex-col items-center gap-2">
+                        <label
+                          htmlFor="profile-upload"
+                          className="flex h-[80px] w-[80px] cursor-pointer items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-[#f0f0f0] transition hover:border-gray-500"
+                        >
+                          {preview ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={preview}
+                              alt="profile preview"
+                              className="h-full w-full rounded-2xl object-cover"
+                            />
+                          ) : (
+                            <span className="text-xs text-gray-600 text-center px-2">
+                              Upload photo
+                            </span>
+                          )}
+                        </label>
+                        <input
+                          id="profile-upload"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleIconChange}
+                        />
+                        <p className="text-[11px] text-gray-500">
+                          JPG/PNG up to 5MB
+                        </p>
                       </div>
                     </>
                   )}

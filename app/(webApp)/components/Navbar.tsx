@@ -48,7 +48,6 @@ const Navbar = () => {
   const { step } = useAppSelector((state) => state.params);
 
   //  const [step, setStep] = useState(1);
-  const [todopopup, setTodopopup] = useState(false);
   const [servers, setServers] = useState<
     {
       _id: string;
@@ -95,7 +94,7 @@ const Navbar = () => {
   const getUserServers = async () => {
     try {
       const res = await axios.get(`${API}/getUserServers/${userId}`);
-      console.log(res?.data, "wqd");
+
       setServers(res?.data);
     } catch (e) {
       console.log(e);
@@ -110,7 +109,7 @@ const Navbar = () => {
     if (userId) {
       getUserServers();
     }
-  }, [userId]);
+  }, []);
   const addTask = async () => {
     if (title.trim() === "") return;
     const newTask = {
@@ -218,7 +217,6 @@ const Navbar = () => {
       console.error("Search error:", err);
     }
   };
-
   const daysLeft = data?.createdAt ? getDaysLeft(data?.createdAt) : 0;
   return (
     <div className="w-full pn:max-sm:flex flex-row-reverse  pn:max-sm:border border-[#f4f4f4da] items-center sm:min-w-[50px] rounded-t-2xl pn:max-sm:bg-white pn:max-sm:h-fit  sm:h-full">
@@ -229,7 +227,7 @@ const Navbar = () => {
             <img
               alt="server"
               src={data?.profilePicUrl}
-              className="w-full h-full object-cover text-[10px]"
+              className="w-full h-full object-cover text-[10px] rounded-[15px]"
             />
           </div>
 
@@ -266,7 +264,7 @@ const Navbar = () => {
                   >
                     <TbServerSpark className="text-[20px]" />
                     <div className="pn:max-sm:text-[12px]">
-                      {path.startsWith("/inServer") ? "Plugins" : "Your Realms"}
+                      {path.startsWith("/relm") ? "Plugins" : "Your Realms"}
                     </div>
                   </Link>
                   {/* add server */}
@@ -300,7 +298,7 @@ const Navbar = () => {
 
                     <div
                       className={`${
-                        (path.startsWith("/inServer") ||
+                        (path.startsWith("/relm") ||
                           path.startsWith("/serverCreation")) &&
                         "hidden"
                       } pn:max-sm:bg-white pn:max-sm:border border-[#f4f4f4da] max-h-[300px] overflow-y-auto pn:max-sm:h-[200px]  sm:w-full pn:max-sm:absolute pn:max-sm:p-3  gap-2 bottom-14 left-2 pn:max-sm:flex pn:max-sm:flex-col-reverse pn:max-sm:justify-center  rounded-2xl `}
@@ -308,12 +306,16 @@ const Navbar = () => {
                       {/* your server  */}
                       {servers?.map((server, index: number) => (
                         <Link
+                        onClick={()=>{
+                          sessionStorage.setItem("serverId", server?._id);
+                          sessionStorage.setItem("dbName", encodeURIComponent(server?.dbName));
+                        }}
                           href={{
-                            pathname: "../inServer",
-                            query: {
-                              serverId: server?._id,
-                              dbName: encodeURIComponent(server?.dbName),
-                            },
+                            pathname: "../relm",
+                            // query: {
+                            //   serverId: server?._id,
+                            //   dbName: encodeURIComponent(server?.dbName),
+                            // },
                           }}
                           key={index}
                           className=" h-[50px]  hover:text-[14px] hover:font-semibold w-full sm:rounded-2xl flex items-center sm:px-4 "
@@ -363,7 +365,7 @@ const Navbar = () => {
                 {daysLeft > 0 && (
                   <Link
                     href={{
-                      pathname: "../inServer",
+                      pathname: "../relm",
                       query: {
                         free: true,
                       },
@@ -408,7 +410,7 @@ const Navbar = () => {
                   setDeletepop(true);
                 }}
                 className={`h-[40px] ${
-                  path.startsWith("/inServer") ? "" : "hidden"
+                  path.startsWith("/relm") ? "" : "hidden"
                 } cursor-pointer sm:w-full bg-red-600 hover:bg-red-500 text-white pn:max-sm:hidden rounded-2xl flex items-center px-2 justify-between`}
               >
                 <div className="flex items-center pn:max-sm:flex-col pn:max-sm:justify-center gap-2">
@@ -442,10 +444,10 @@ const Navbar = () => {
               )}
               {/* Explore Plugins */}
               <Link
-                href="../explorePlugins"
+                href="/explorePlugins"
                 className={`${
                   path.startsWith("/serverCreation") ||
-                  (path.startsWith("/inServer") && "hidden")
+                  (path.startsWith("/relm") && "hidden")
                 } sm:h-[40px] sm:w-full rounded-2xl flex items-center px-2 justify-between`}
               >
                 <div className="flex items-center pn:max-sm:flex-col pn:max-sm:justify-center  gap-2">
@@ -457,11 +459,11 @@ const Navbar = () => {
               </Link>
               {/* billings  */}
               <Link
-                href="../m&b"
+                href="../manageBilling"
                 // onClick={() => setSection(2)}
                 className={`${
                   (path.startsWith("/serverCreation") ||
-                    path.startsWith("/inServer")) &&
+                    path.startsWith("/relm")) &&
                   "hidden"
                 } sm:h-[40px] sm:w-full rounded-2xl flex items-center px-2 justify-between`}
               >

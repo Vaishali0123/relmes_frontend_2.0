@@ -13,14 +13,14 @@ import {
 import { IoCreateOutline } from "react-icons/io5";
 import { usePathname } from "next/navigation";
 import MarketPlace from "../components/MarketPlace";
-
-interface SelectedPlugin {
-  id: string;
-  name: string;
-  icon: string;
-  price: number;
-  plan: "basic" | "pro" | "enterprise";
-}
+import {
+  setSearchQuery,
+  removeSelectedPlugin,
+  SelectedPlugin,
+} from "@/app/redux/slices/paramsSlice";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from "@/app/redux/store";
+import { PluginData } from "../relm/layout";
 
 export default function MarketPlaceLayout({
   children,
@@ -28,25 +28,14 @@ export default function MarketPlaceLayout({
   children: React.ReactNode;
 }>) {
   const path = usePathname();
-  const [searchQuery, setSearchQuery] = useState("");
+  const dispatch = useDispatch();
+  const searchQuery = useSelector(
+    (state: RootState) => state.params.searchQuery
+  );
   const [selectedServer, setSelectedServer] = useState<string>("");
-  const [selectedPlugins, setSelectedPlugins] = useState<SelectedPlugin[]>([
-    // Sample data for testing - remove in production
-    {
-      id: "1",
-      name: "Advanced Analytics",
-      icon: "📊",
-      price: 29.99,
-      plan: "pro",
-    },
-    {
-      id: "2",
-      name: "Security Shield",
-      icon: "🛡️",
-      price: 39.99,
-      plan: "pro",
-    },
-  ]);
+  const selectedPlugins = useSelector(
+    (state: RootState) => state.params.selectedPlugins
+  );
   const [isServerDropdownOpen, setIsServerDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -83,7 +72,7 @@ export default function MarketPlaceLayout({
   );
 
   const removePlugin = (pluginId: string) => {
-    setSelectedPlugins((prev) => prev.filter((p) => p.id !== pluginId));
+    dispatch(removeSelectedPlugin(pluginId));
   };
 
   const handlePayNow = () => {
@@ -102,8 +91,7 @@ export default function MarketPlaceLayout({
       totalAmount,
     });
     alert(
-      `Processing payment of $${totalAmount.toFixed(2)} for ${
-        selectedPlugins.length
+      `Processing payment of $${totalAmount.toFixed(2)} for ${selectedPlugins.length
       } plugin(s)`
     );
   };
@@ -112,9 +100,8 @@ export default function MarketPlaceLayout({
     <div className="w-full h-full  ">
       {/* Header */}
       <div
-        className={`flex h-[80px]  ${
-          path.startsWith("/marketPlace/plugins") ? "hidden" : ""
-        }   p-2 justify-between items-center px-2 `}
+        className={`flex h-[80px]  ${path.startsWith("/marketPlace/plugins") ? "hidden" : ""
+          }   p-2 justify-between items-center px-2 `}
       >
         <div className="flex h-full  w-full p-2  bg-white border rounded-2xl  border-[#f5f5f5] justify-between items-center px-2 ">
           <div className=" pl-2">
@@ -133,8 +120,12 @@ export default function MarketPlaceLayout({
                 type="text"
                 placeholder="Search plugins..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 border rounded-2xl border-[#f5f5f5] bg-[#f5f5f5] focus:outline-none focus:ring focus:ring-blue-500 focus:border-transparent"
+                // onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) =>
+                  // dispatch(setSearchQuery())
+                  dispatch(setSearchQuery(e.target.value))
+                }
+                className="w-full pl-10 pr-4 py-2.5 border rounded-2xl border-[#f5f5f5] bg-[#f5f5f5]  focus:outline-none focus:ring focus:ring-gray-200 focus:border-transparent"
               />
             </div>
             <div className="w-[45px] h-[45px] bg-[#f5f5f5] flex items-center border border-[#f5f5f5] rounded-2xl justify-center">
@@ -165,9 +156,8 @@ export default function MarketPlaceLayout({
                     : "Choose a server"}
                 </span>
                 <ChevronDown
-                  className={`h-4 w-4 text-gray-400 transition-transform ${
-                    isServerDropdownOpen ? "rotate-180" : ""
-                  }`}
+                  className={`h-4 w-4 text-gray-400 transition-transform ${isServerDropdownOpen ? "rotate-180" : ""
+                    }`}
                 />
               </button>
               {isServerDropdownOpen && (
@@ -179,17 +169,14 @@ export default function MarketPlaceLayout({
                         setSelectedServer(server.id);
                         setIsServerDropdownOpen(false);
                       }}
-                      className={`w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors ${
-                        selectedServer === server.id
-                          ? "bg-[#FDD78D] bg-opacity-20"
-                          : ""
-                      } ${
-                        server.id === mockServers[0].id ? "rounded-t-2xl" : ""
-                      } ${
-                        server.id === mockServers[mockServers.length - 1].id
+                      className={`w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors ${selectedServer === server.id
+                        ? "bg-[#FDD78D] bg-opacity-20"
+                        : ""
+                        } ${server.id === mockServers[0].id ? "rounded-t-2xl" : ""
+                        } ${server.id === mockServers[mockServers.length - 1].id
                           ? "rounded-b-2xl"
                           : ""
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-gray-900">{server.name}</span>
@@ -229,14 +216,22 @@ export default function MarketPlaceLayout({
                   </div>
                 </div>
               ) : (
-                selectedPlugins.map((plugin) => (
+                selectedPlugins.map((plugin: SelectedPlugin) => (
                   <div
-                    key={plugin.id}
+                    key={plugin._id}
                     className="bg-white border border-[#f5f5f5] rounded-2xl p-3 hover:shadow-sm transition-shadow"
                   >
                     <div className="flex items-start gap-3">
                       <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-xl shrink-0">
-                        {plugin.icon}
+                        {plugin.icon ? (
+                          <img
+                            src={plugin.icon}
+                            alt={plugin.name}
+                            className="w-full h-full object-contain rounded-xl"
+                          />
+                        ) : (
+                          plugin.name?.charAt(0)
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="text-sm font-medium text-gray-900 truncate mb-1">
@@ -244,7 +239,7 @@ export default function MarketPlaceLayout({
                         </h4>
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-gray-500 capitalize">
-                            {plugin.plan}
+                            {plugin.plan || "Standard"}
                           </span>
                           <span className="text-sm font-semibold text-gray-900">
                             ${plugin.price.toFixed(2)}
@@ -252,7 +247,7 @@ export default function MarketPlaceLayout({
                         </div>
                       </div>
                       <button
-                        onClick={() => removePlugin(plugin.id)}
+                        onClick={() => removePlugin(plugin._id)}
                         className="w-6 h-6 rounded-full bg-gray-100 hover:bg-red-100 flex items-center justify-center transition-colors shrink-0"
                       >
                         <X className="h-3.5 w-3.5 text-gray-600 hover:text-red-600" />

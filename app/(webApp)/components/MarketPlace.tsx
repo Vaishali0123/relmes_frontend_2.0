@@ -1,12 +1,41 @@
 "use client";
 
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Search, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { mockPlugins, type Plugin } from "../explorePlugins/data/plugins";
 import { IoCreateOutline } from "react-icons/io5";
 import InsidePlugin from "./Insideplugin";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/app/redux/store";
+import { setSearchQuery, setSelectedPlugin, removeSelectedPlugin, setSelectedPlugins } from "@/app/redux/slices/paramsSlice";
+import { API, errorHandler } from "@/app/utils/helpers";
+import axios from "axios";
+type ApiPlugin = {
+  _id?: string;
+  pluginName?: string;
+  description?: string;
+  pluginType?: string;
+  tags?: string[];
+  membership?: { planName?: string; price?: number }[];
+  icon?: string;
+  slug?: string;
+  generatedpluginId?: string;
+};
 
+type MarketplacePlugin = {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  priceLabel: "Free" | "Paid";
+  priceValue: number;
+  downloads: number;
+  rating: number;
+  icon?: string;
+  slug?: string;
+
+};
 const categories = [
   "All",
   "Analytics",
@@ -20,15 +49,46 @@ const categories = [
 ];
 
 const MarketPlace = () => {
-  const [searchQuery, setSearchQuery] = useState("");
+  // const [searchQuery, setSearchQuery] = useState("");
+  const dispatch = useDispatch();
+  const searchQuery = useSelector(
+    (state: RootState) => state.params.searchQuery
+  );
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [chartTab, setChartTab] = useState<"free" | "grossing" | "paid">(
     "free"
   );
+  const [plugins, setPlugins] = useState<MarketplacePlugin[]>([]);
   const carouselRef = useRef<HTMLDivElement>(null);
-  const [selectedPlugin, setSelectedPlugin] = useState<Plugin | null>(null);
+  const selectedPlugin = useSelector((state: RootState) => state.params.selectedPlugin)
+  const selectedPlugins = useSelector((state: RootState) => state.params.selectedPlugins)
+  // const [selectedPlugin, setSelectedPlugin] = useState<Plugin | null>(null);
   const featuredPlugins = mockPlugins.filter((p) => p.featured).slice(0, 3);
+  const [loading, setLoading] = useState(true);
 
+  const handlePluginToggle = (e: React.MouseEvent, plugin: MarketplacePlugin) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const isSelected = selectedPlugins.some(p => p._id === plugin.id);
+
+    if (isSelected) {
+      dispatch(removeSelectedPlugin(plugin.id));
+    } else {
+      dispatch(setSelectedPlugins({
+        _id: plugin.id,
+        name: plugin.name,
+        description: plugin.description,
+        price: plugin.priceValue,
+        icon: plugin.icon,
+        category: plugin.category,
+        duration: 30, // Default duration
+        type: plugin.category,
+        membershipName: plugin.priceLabel,
+        // plan: plugin.plan
+      }));
+    }
+  };
   const scrollCarousel = (direction: "left" | "right") => {
     if (carouselRef.current) {
       const scrollAmount = 400;
@@ -38,9 +98,64 @@ const MarketPlace = () => {
       });
     }
   };
+  const [categories, setCategories] = useState<string[]>(["All"]);
+  useEffect(() => {
+    const endpoint = API ? `${API}/getAllPlugins` : "/api/getAllPlugins";
 
+    const fetchPlugins = async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get(endpoint);
+        const apiData: ApiPlugin[] =
+          res.data?.data || res.data?.plugins || res.data || [];
+
+        const normalized: MarketplacePlugin[] = apiData.map((plugin, index) => {
+          const id =
+            plugin._id ||
+            plugin.generatedpluginId ||
+            `plugin-${index.toString()}`;
+          const name = plugin.pluginName?.trim() || "Untitled Plugin";
+          const description =
+            plugin.description?.trim() || "No additional information provided.";
+          const category = plugin.pluginType?.trim() || "General";
+          const priceValue = Number(plugin.membership?.[0]?.price ?? 0);
+          const priceLabel = priceValue > 0 ? "Paid" : "Free";
+          const downloads = 10 * (index + 1);
+          const rating = 4 + (index % 10) * 0.05;
+
+          return {
+            id,
+            name,
+            description,
+            category,
+            priceLabel,
+            priceValue,
+            downloads,
+            rating: Math.min(rating, 5),
+            icon: plugin.icon,
+            slug: plugin.slug,
+          };
+        });
+
+        setPlugins(normalized);
+        const uniqueCategories = [
+          "All",
+          ...Array.from(
+            new Set(normalized.map((plugin) => plugin.category).filter(Boolean))
+          ),
+        ];
+        setCategories(uniqueCategories);
+      } catch (error) {
+        errorHandler(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPlugins();
+  }, []);
   const filteredPlugins = useMemo(() => {
-    let filtered = mockPlugins.filter((plugin) => {
+    let filtered = plugins.filter((plugin) => {
       const matchesSearch =
         plugin.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         plugin.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -50,33 +165,33 @@ const MarketPlace = () => {
     });
 
     // Sort by chart type
-    if (chartTab === "free") {
-      filtered = filtered.filter((p) => p.price === "Free");
-      filtered.sort((a, b) => {
-        const aDownloads = parseInt(
-          a.downloads.replace("K+", "").replace("+", "")
-        );
-        const bDownloads = parseInt(
-          b.downloads.replace("K+", "").replace("+", "")
-        );
-        return bDownloads - aDownloads;
-      });
-    } else if (chartTab === "paid") {
-      filtered = filtered.filter((p) => p.price === "Paid");
-      filtered.sort((a, b) => b.rating - a.rating);
-    } else {
-      // Top grossing - sort by downloads * rating
-      filtered.sort((a, b) => {
-        const aScore =
-          parseInt(a.downloads.replace("K+", "").replace("+", "")) * a.rating;
-        const bScore =
-          parseInt(b.downloads.replace("K+", "").replace("+", "")) * b.rating;
-        return bScore - aScore;
-      });
-    }
+    // if (chartTab === "free") {
+    //   filtered = filtered.filter((p) => p.price === "Free");
+    //   filtered.sort((a, b) => {
+    //     const aDownloads = parseInt(
+    //       a.downloads.replace("K+", "").replace("+", "")
+    //     );
+    //     const bDownloads = parseInt(
+    //       b.downloads.replace("K+", "").replace("+", "")
+    //     );
+    //     return bDownloads - aDownloads;
+    //   });
+    // } else if (chartTab === "paid") {
+    //   filtered = filtered.filter((p) => p.price === "Paid");
+    //   filtered.sort((a, b) => b.rating - a.rating);
+    // } else {
+    //   // Top grossing - sort by downloads * rating
+    //   filtered.sort((a, b) => {
+    //     const aScore =
+    //       parseInt(a.downloads.replace("K+", "").replace("+", "")) * a.rating;
+    //     const bScore =
+    //       parseInt(b.downloads.replace("K+", "").replace("+", "")) * b.rating;
+    //     return bScore - aScore;
+    //   });
+    // }
 
     return filtered;
-  }, [searchQuery, selectedCategory, chartTab]);
+  }, [searchQuery, selectedCategory, chartTab, featuredPlugins]);
 
   const renderStars = (rating: number) => {
     const fullStars = Math.floor(rating);
@@ -102,7 +217,7 @@ const MarketPlace = () => {
   };
 
   return selectedPlugin ? (
-    <InsidePlugin pluginId={selectedPlugin?.id} />
+    <InsidePlugin pluginId={selectedPlugin._id} />
   ) : (
     <>
       {/* Header */}
@@ -144,11 +259,10 @@ const MarketPlace = () => {
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                selectedCategory === category
-                  ? "bg-[#FDD78D] text-black"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200  "
-              }`}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${selectedCategory === category
+                ? "bg-[#FDD78D] text-black"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200  "
+                }`}
             >
               {category}
             </button>
@@ -222,12 +336,12 @@ const MarketPlace = () => {
 
         {/* Top Charts Section */}
         <div className="mb-6 bg-[#fcfcfc] p-4 rounded-3xl">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          {/* <h2 className="text-xl font-semibold text-gray-900 mb-4">
             Top charts
-          </h2>
+          </h2> */}
 
           {/* Chart Tabs */}
-          <div className="flex gap-2 mb-4">
+          {/* <div className="flex gap-2 mb-4">
             <button
               onClick={() => setChartTab("free")}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
@@ -258,7 +372,7 @@ const MarketPlace = () => {
             >
               Top paid
             </button>
-          </div>
+          </div> */}
 
           {/* Chart List */}
           <div className="space-y-1 ">
@@ -267,7 +381,17 @@ const MarketPlace = () => {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  setSelectedPlugin(plugin);
+                  setSelectedPlugin({
+                    _id: plugin.id,
+                    name: plugin.name,
+                    price: plugin.priceValue,
+                    description: plugin.description,
+                    icon: plugin.icon,
+                    category: plugin.category,
+                    duration: 30,
+                    type: plugin.category,
+                    membershipName: plugin.priceLabel
+                  });
                 }}
                 key={plugin.id}
                 href={`/marketPlace/plugins/${plugin.id}`}
@@ -275,7 +399,10 @@ const MarketPlace = () => {
               >
                 <div className="h-full  rounded-[25px] rotate-6 pb-4 relative">
                   <div className="absolute top-2 left-2 w-[40px] h-[40px] bg-[#eeeeee] flex items-center justify-center text-2xl rounded-[5px]">
-                    {plugin.icon}
+                    <img
+                      src={plugin?.icon}
+                      className="h-full w-full object-cover rounded-[5px]"
+                    />
                   </div>
                   <div className=" w-[40px] h-[40px] bg-[#eeeeee] rounded-[5px]"></div>
                 </div>
@@ -290,13 +417,13 @@ const MarketPlace = () => {
                 </div>
 
                 <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
-                  className="bg-[#FDD78D]  px-4 py-1.5 rounded-full text-sm font-medium hover:bg-blue-600 transition-colors whitespace-nowrap"
+                  onClick={(e) => handlePluginToggle(e, plugin)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${selectedPlugins.some(p => p._id === plugin.id)
+                    ? "bg-green-500 text-white hover:bg-green-600"
+                    : "bg-[#FDD78D] hover:bg-[#fae4b8]"
+                    }`}
                 >
-                  + add
+                  {selectedPlugins.some(p => p._id === plugin.id) ? "Remove" : "+ Add"}
                 </button>
               </Link>
             ))}
@@ -309,38 +436,32 @@ const MarketPlace = () => {
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               {selectedCategory} Plugins
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2  md:grid-cols-3 lg:grid-cols-4 gap-4">
               {filteredPlugins.map((plugin) => (
                 <Link
                   key={plugin.id}
                   href={`/marketPlace/plugins/${plugin.id}`}
-                  className="bg-white border border-gray-200 rounded-xl p-4 cursor-pointer hover:shadow-md transition-shadow"
+                  className="bg-white border border-gray-200 rounded-xl p-4 cursor-pointer hover:shadow-md transition-shadow relative group"
                 >
                   <div className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-3xl mb-3 mx-auto">
-                    {plugin.icon}
+                    <img
+                      src={plugin?.icon}
+                      className="w-full h-full object-cover rounded-xl"
+                    />
                   </div>
                   <h3 className="font-medium text-gray-900 text-sm mb-1 line-clamp-1">
                     {plugin.name}
                   </h3>
-                  <p className="text-xs text-gray-500 mb-2 line-clamp-2">
-                    {plugin.developer}
-                  </p>
-                  <div className="flex items-center gap-1 mb-2">
-                    {renderStars(plugin.rating)}
-                    <span className="text-xs text-gray-600">
-                      {plugin.rating}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs px-2 py-0.5 bg-gray-100 rounded text-gray-700">
-                      {plugin.price}
-                    </span>
-                    {plugin.trending && (
-                      <span className="text-xs text-orange-600 font-medium">
-                        Trending
-                      </span>
-                    )}
-                  </div>
+
+                  <button
+                    onClick={(e) => handlePluginToggle(e, plugin)}
+                    className={`w-full mt-2 py-1.5 rounded-full text-xs font-medium transition-colors ${selectedPlugins.some(p => p._id === plugin.id)
+                        ? "bg-green-500 text-white hover:bg-green-600"
+                        : "bg-[#FDD78D] hover:bg-[#fae4b8]"
+                      }`}
+                  >
+                    {selectedPlugins.some(p => p._id === plugin.id) ? "RemoveA" : "+ Add"}
+                  </button>
                 </Link>
               ))}
             </div>

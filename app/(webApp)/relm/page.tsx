@@ -1,17 +1,14 @@
 "use client";
-import { useSearchParams } from "next/navigation";
-import React, { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import  { Suspense, useEffect, useState } from "react";
 import { useAuthContext } from "../auth/components/auth";
-import Bg from "@/public/bgin.png";
-import { IoExtensionPuzzleOutline } from "react-icons/io5";
-import Image from "next/image";
-import profile from "../../../public/image.png";
 import { useAppDispatch, useAppSelector } from "@/app/redux/hooks";
-import Link from "next/link";
+
 import { setOpenPluginwindow } from "@/app/redux/slices/paramsSlice";
 import axios from "axios";
 import { API } from "@/app/utils/helpers";
 import { PluginData } from "./layout";
+
 
 // const plugins = [
 //   {
@@ -47,6 +44,7 @@ import { PluginData } from "./layout";
 // ];
 const PageContent = () => {
   const dispatch = useAppDispatch();
+  const router=useRouter()
   const searchparams = useSearchParams();
   const [plugin, setPlugin] = useState("");
   const [serverId, setServerId] = useState("");
@@ -81,7 +79,7 @@ const PageContent = () => {
       try {
         const res = await axios.get(`${API}/getPlugins/${serverId}`);
         if (res?.data?.success) {
-          setPlugindata(res?.data?.server?.pluginsdata || []);
+          setPlugindata(res?.data?.plugins || []);
         }
       } catch (e) {
         console.log(e);
@@ -93,24 +91,27 @@ const PageContent = () => {
     }
   }, [serverId]);
 
-  console.log(plugindata, "pluginsdata");
+  console.log(openPluginwindow, "openPluginwindow");
 
   return (
     <div
-      style={
-        {
-          // backgroundImage: `url(${Bg.src})`,
-          // backgroundPosition: "top",
-        }
-      }
-      className="bg-orange-200  bg-cover  h-full flex items-center "
+     
+      style={{
+          backgroundImage: `url('/wallpaper1.png')`,
+          backgroundPosition: "top",
+          backgroundSize: "contain",
+          // backgroundRepeat: "repeat",
+
+        }}
+      className="bg-black   h-full flex items-center "
     >
-      {openPluginwindow ? (
+      
+      {/* {openPluginwindow?.length > 0 ? (
         <iframe
-          src={`http://localhost:5173/?dbName=${encoded}&userId=${userId}&serverId=${serverId}`}
+          src={`${openPluginwindow}/?dbName=${encoded}&userId=${userId}&serverId=${serverId}`}
           className="w-full h-full rounded-2xl"
         />
-      ) : (
+      ) : ( */}
         <div
           style={{
             gridAutoFlow: "column",
@@ -127,48 +128,57 @@ const PageContent = () => {
             h-[90%]
            px-4 mt-4"
         >
-          {plugindata?.map((d, i) => (
-            <Link
+          {plugindata?.map((d:PluginData, i) => (
+            <div
               onClick={(e) => {
                 e.preventDefault()
-                dispatch(setOpenPluginwindow(true));
+                
+                // dispatch(setOpenPluginwindow(true));
               }}
-              href={{
-                pathname: "../inServer",
-                query: {
-                  plugin: `${d?.type}`,
-                  serverId: serverId,
-                  dbName: dbName,
-                },
-              }}
+               onDoubleClick={(e) => {
+    e.preventDefault();
+    
+    dispatch(setOpenPluginwindow(d?.productiondomain));
+    router.push(`../relm/plugin/${d?.pluginName}`)
+    sessionStorage.setItem("pluginId", d?._id);
+  }}
+              // href={{
+              //   pathname: "../inServer",
+              //   query: {
+              //     plugin: `${d?.type}`,
+              //     serverId: serverId,
+              //     dbName: dbName,
+              //     productiondomain: `${d?.productiondomain}`,
+              //   },
+              // }}
               key={i}
-              className="py-2 text-[12px] text-center items-center  justify-center hover:-rotate-12  hover:scale-110 transition-all duration-300   w-[50px] flex flex-col gap-2"
+              className="py-2 text-[12px] cursor-pointer text-center items-center  justify-center   w-[50px] flex flex-col gap-2"
             >
-              <div className="relative  h-[35px] rotate-0  w-[30px]">
+              <div className="relative  h-[35px]  hover:-rotate-12  hover:scale-110 transition-all duration-300 rotate-0  w-[30px]">
                 {/* Reflection / Shadow box */}
                 <div className="absolute top-[3px] left-[-3px] h-[32px] w-[30px] rounded-sm bg-[#F7F7F7] overflow-hidden">
-                  <Image
-                    src={profile}
-                    alt="user"
+                  <img
+                    src={d?.icon}
+                    alt={d?.pluginName}
                     className="w-full h-full object-cover"
                   />
                 </div>
                 {/* Main box */}
                 <div className="relative h-[32px] w-[30px] bg-[#F7F7F7] rounded-sm overflow-hidden ">
-                  <Image
-                    src={profile}
-                    alt="user"
+                  <img
+                    src={d?.icon}
+                    alt={d?.pluginName}
                     className="w-full h-full object-cover"
                   />
                 </div>
               </div>
-              <span className="block text-center w-full overflow-hidden whitespace-nowrap text-black">
-                {d?.type}
+              <span className="block text-center w-full font-bold  overflow-hidden font-space-grotesk whitespace-nowrap text-white">
+                {d?.pluginName}
               </span>
-            </Link>
+            </div>
           ))}
         </div>
-      )}
+      {/* )} */}
     </div>
   );
 };

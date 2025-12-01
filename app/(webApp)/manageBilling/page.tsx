@@ -18,6 +18,7 @@ import axios from "axios";
 import { API, formatDateDay } from "../../utils/helpers";
 import { useAuthContext } from "../auth/components/auth";
 import Link from "next/link";
+import { FaServer } from "react-icons/fa";
 
 interface Server {
   _id: string;
@@ -80,7 +81,6 @@ const ServerManagement: React.FC = () => {
     try {
       if (!userId) return;
       const res = await axios.get(`${API}/getUserServers/${userId}`);
-      console.log(res?.data, "jbjh");
       setServers(res?.data);
     } catch (e) {
       console.log(e);
@@ -243,14 +243,14 @@ const ServerManagement: React.FC = () => {
         <div className="flex items-center space-x-4 h-fit w-full p-2 justify-between bg-white border border-[#f4f4f4da] rounded-2xl">
           <div>
             <h1 className="text-xl font-semibold pl-2 font-space-grotesk text-gray-900">
-              Server Management
+            Manage your spaces
             </h1>
             <p className="text-gray-600 text-sm pl-2 mt-1">
-              Manage and monitor your server infrastructure
+              Manage and monitor your infrastructure
             </p>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className={`flex ${servers?.length===0 && "hidden"} items-center space-x-4`}>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
@@ -266,12 +266,20 @@ const ServerManagement: React.FC = () => {
       </div>
 
       {/* Created by you section */}
-      <div className="  h-[calc(100vh-100px)] p-4 border border-[#f4f4f4da] rounded-3xl overflow-hidden overflow-y-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {servers.map((server, index) => (
+      <div className="  h-[calc(100vh-100px)] p-4 border border-[#f4f4f4da]  rounded-3xl overflow-hidden overflow-y-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2  lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {servers?.length>0 && servers.map((server, index) => (
             <ServerCard key={index} server={server} />
-          ))}
+          ))
+       }
         </div>
+        {servers?.length===0 && (
+          <div className="flex flex-col w-full gap-2 h-full items-center justify-center">
+            <FaServer size={25} />
+            <div className="font-space-grotesk text-[18px]">No Relm found to manage</div>
+            <Link href={"/serverCreation"} className="text-white hover:opacity-[90%] bg-[#000] rounded-[18px] px-8 py-2">Create Now</Link>
+          </div>
+        )}
       </div>
     </div>
   );

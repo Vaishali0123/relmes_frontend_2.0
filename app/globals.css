@@ -26,3 +26,12 @@
   scrollbar-width: thin;
   scrollbar-color: #888 #f0f0f0;
 }
+
+@keyframes slideUpDisappear {
+  0%   { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-40px); opacity: 0; }
+}
+
+.header-slide-up {
+  animation: slideUpDisappear 0.35s ease-out forwards;
+}

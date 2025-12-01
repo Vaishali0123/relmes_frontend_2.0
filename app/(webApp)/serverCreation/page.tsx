@@ -12,19 +12,23 @@ import { useRouter } from "next/navigation";
 import { API } from "@/app/utils/helpers";
 import { useAuthContext } from "../auth/components/auth";
 import { useAppDispatch, useAppSelector } from "@/app/redux/hooks";
-import { setStep } from "@/app/redux/slices/paramsSlice";
+import { setSelectedPlugins, setStep, removeSelectedPlugin, SelectedPlugin, updateSelectedPlugin } from "@/app/redux/slices/paramsSlice";
 import MarketPlace from "../components/MarketPlace";
 import { BsPlug } from "react-icons/bs";
 import { TbServer2 } from "react-icons/tb";
 import axios from "axios";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/redux/store";
+import { PluginData } from "../relm/layout";
 
-type Plugin = {
+interface Plugin {
   _id: string;
-  type: string;
-  duration: number;
+  duration?: number;
   price: number;
   membershipName?: string;
-};
+  membershipId?: string;
+  // Add other properties that exist on your plugin object
+}
 
 interface UserData {
   id: string;
@@ -55,14 +59,16 @@ const ServerCreation = () => {
   const [storageAllotted, setStorageAllotted] = useState(0);
   const [icon, setIcon] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [selectedPlugins, setSelectedPlugins] = useState<Plugin[]>([]);
+  // const [selectedPlugins, setSelectedPlugins] = useState<Plugin[]>([]);
   const [serverplans, setServerplans] = useState<any[]>([]);
   const [plugins, setPlugins] = useState<any[]>([]);
   const [selectedServerPlan, setSelectedServerPlan] = useState<any>(null);
   const { data } = useAuthContext(); // Assuming you have a context to get user data
   // Using mock data - replace with actual auth context
   const userData = mockUserData;
-
+  const selectedPlugins = useSelector<RootState, SelectedPlugin[]>(
+    (state: RootState) => state.params.selectedPlugins
+  );
   const handleIconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -94,7 +100,7 @@ const ServerCreation = () => {
     // Reset plugins if server plan validity is less than any selected plugin validity
     if (selectedPlugins.length > 0) {
       const invalidPlugins = selectedPlugins.filter(
-        (p) => p.duration > plan.duration
+        (p) => (p.duration || 30) > plan.duration
       );
       if (invalidPlugins.length > 0) {
         invalidPlugins.forEach((plugin) => {
@@ -132,39 +138,30 @@ const ServerCreation = () => {
     const pluginData = plugins.find((p: any) => p._id === pluginId);
     const pluginType = pluginData?.type || pluginData?.name || "Unknown";
 
-    setSelectedPlugins((prev) => {
-      const exists = prev.find((p) => p._id === pluginId);
-      if (exists) {
-        // Update existing plugin
-        return prev.map((p) =>
-          p._id === pluginId
-            ? {
-                ...p,
-                duration: pluginDuration,
-                price: price,
-                // membershipName: selectedServerPlan?.name || membershipId,
-                membershipId: membershipId,
-              }
-            : p
-        );
-      } else {
-        // Add new plugin
-        return [
-          ...prev,
-          {
-            _id: pluginId,
-            type: pluginType,
-            duration: pluginDuration,
-            price,
-            membershipName: selectedServerPlan?.name || membershipId,
-          },
-        ];
-      }
-    });
+    const exists = selectedPlugins.find((p: SelectedPlugin) => p._id === pluginId);
+    if (exists) {
+      // Update existing plugin
+      dispatch(updateSelectedPlugin({
+        ...exists,
+        // duration: pluginDuration,
+        // price: price,
+        // // membershipName: selectedServerPlan?.name || membershipId,
+        // membershipId: membershipId,
+      }));
+    } else {
+      // Add new plugin
+      dispatch(setSelectedPlugins({
+        _id: pluginId,
+        price: price,
+        // type: pluginType,
+        // duration: pluginDuration,
+        // membershipName: selectedServerPlan?.name || membershipId,
+      }));
+    }
   };
 
   const removePlugin = (pluginId: string, price: number) => {
-    setSelectedPlugins((prev) => prev.filter((p) => p._id !== pluginId));
+    dispatch(removeSelectedPlugin(pluginId));
   };
 
   const createServer = async () => {
@@ -280,14 +277,12 @@ const ServerCreation = () => {
       <div className="flex h-full">
         {/* step 1 */}
         <div
-          className={` space-y-2 overflow-hidden bg-white border rounded-l-3xl p-4 border-[#f4f4f4] duration-100 ${
-            step === 1 ? "w-full" : "w-[10%] "
-          }`}
+          className={` space-y-2 overflow-hidden bg-white border rounded-l-3xl p-4 border-[#f4f4f4] duration-100 ${step === 1 ? "w-full" : "w-[10%] "
+            }`}
         >
           <div
-            className={`text-3xl text-primary flex flex-col items-center justify-center ${
-              step === 1 ? "opacity-0 hidden" : "opacity-100"
-            }`}
+            className={`text-3xl text-primary flex flex-col items-center justify-center ${step === 1 ? "opacity-0 hidden" : "opacity-100"
+              }`}
           >
             <TbServer2 />
             <div className="flex items-center justify-center flex-col mt-4 font-space-grotesk">
@@ -393,11 +388,10 @@ const ServerCreation = () => {
                     {serverplans.map((option, i) => (
                       <div
                         key={i}
-                        className={`cursor-pointer transition-all duration-200 border border-[#f4f4f4] rounded-2xl hover:shadow-md ${
-                          membershipId === option?._id
-                            ? "scale-110 bg-primary/5"
-                            : "hover:bg-muted/50"
-                        }`}
+                        className={`cursor-pointer transition-all duration-200 border border-[#f4f4f4] rounded-2xl hover:shadow-md ${membershipId === option?._id
+                          ? "scale-110 bg-primary/5"
+                          : "hover:bg-muted/50"
+                          }`}
                         onClick={() => handleServerPlanSelect(option)}
                       >
                         <CardContent className="p-4 text-center ">
@@ -436,14 +430,12 @@ const ServerCreation = () => {
         </div>
         {/* step 2 */}
         <div
-          className={` space-y-2 h-full overflow-hidden bg-white border-t border-b  p-4 border-[#f4f4f4] duration-100 ${
-            step === 2 ? "w-full  " : "w-[10%] "
-          }`}
+          className={` space-y-2 h-full overflow-hidden bg-white border-t border-b  p-4 border-[#f4f4f4] duration-100 ${step === 2 ? "w-full  " : "w-[10%] "
+            }`}
         >
           <div
-            className={`text-3xl text-primary flex flex-col items-center justify-center ${
-              step === 2 ? "opacity-0 hidden" : "opacity-100"
-            }`}
+            className={`text-3xl text-primary flex flex-col items-center justify-center ${step === 2 ? "opacity-0 hidden" : "opacity-100"
+              }`}
           >
             <BsPlug />
             <div className="flex items-center justify-center flex-col mt-4 font-space-grotesk">
@@ -467,9 +459,8 @@ const ServerCreation = () => {
         </div>
         {/* step 3 */}
         <div
-          className={` flex items-center justify-center relative space-y-2 h-full overflow-hidden bg-white border rounded-r-3xl p-2 border-[#f4f4f4] duration-100 ${
-            step === 3 ? "w-full " : "w-80 "
-          }`}
+          className={` flex items-center justify-center relative space-y-2 h-full overflow-hidden bg-white border rounded-r-3xl p-2 border-[#f4f4f4] duration-100 ${step === 3 ? "w-full " : "w-80 "
+            }`}
         >
           <div className="  h-full w-full p-4 rounded-2xl top-6">
             <h3 className="text-lg font-semibold font-space-grotesk text-foreground mb-4">
@@ -493,13 +484,13 @@ const ServerCreation = () => {
                   </div>
                 )}
 
-                {selectedPlugins.map((plugin) => (
+                {selectedPlugins.map((plugin, i) => (
                   <div
-                    key={`${plugin._id}-${plugin.duration}`}
+                    key={i}
                     className="flex justify-between items-center"
                   >
                     <div>
-                      <div className="font-medium text-sm">{plugin.type}</div>
+                      <div className="font-medium text-sm">{plugin.name}</div>
                       <div className="text-xs text-muted-foreground">
                         {plugin.membershipName && (
                           <span>{plugin.membershipName} • </span>
@@ -541,9 +532,7 @@ const ServerCreation = () => {
             </div>
 
             {step <= 3 &&
-              (selectedServerPlan?.price || 0) +
-                selectedPlugins.reduce((sum, p) => sum + p.price, 0) >
-                0 && (
+              (selectedServerPlan || selectedPlugins.length > 0) && (
                 <Button
                   onClick={() =>
                     // dispatch(setStep(step + 1)
@@ -554,7 +543,7 @@ const ServerCreation = () => {
                     step === 1 && (!name || !slug.trim() || !selectedServerPlan)
                   }
                 >
-                  Continue to {step === 1 ? "Plugins" : "Payment"}
+                  {step === 1 ? "Continue to Plugins" : "Proceed"}
                 </Button>
               )}
           </div>

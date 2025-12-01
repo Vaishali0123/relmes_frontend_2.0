@@ -22,6 +22,7 @@ import {
   MdHelpOutline,
   MdOutlineTipsAndUpdates,
 } from "react-icons/md";
+import { RxCross2 } from "react-icons/rx";
 import { useAuthContext } from "../auth/components/auth";
 import { API } from "../../utils/helpers";
 import toast, { Toaster } from "react-hot-toast";
@@ -50,9 +51,13 @@ interface MainLayoutProps {
 }
 
 export interface PluginData {
-  _id?: string;
+  _id: string;
   type?: string;
   expireson?: string;
+  pluginName?: string;
+  icon?: string;
+productiondomain:string;
+
 }
 // Add some raw data for the plugins
 const plugins = [
@@ -134,8 +139,8 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
   const [openMorePlugins, setOpenMorePlugins] = useState(false);
   const [openAccountSettings, setOpenAccountSettings] = useState(false);
-  const serverId = searchparams.get("serverId");
-  const dbName = searchparams.get("dbName");
+  const serverId = sessionStorage.getItem("serverId");
+  const dbName = sessionStorage.getItem("dbName");
   const { data } = useAuthContext();
 
   const [plugindata, setPlugindata] = useState<PluginData[]>([]);
@@ -153,6 +158,7 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
     const year = date.getFullYear();
     return `upto ${day} ${monthShort} ${year}`;
   };
+  const currentPluginData =JSON.parse(sessionStorage.getItem("currentPluginData") || "{}")
   const [openProfile, setOpenProfile] = useState(false);
   const [openBillingDialog, setOpenBillingDialog] = useState(false);
   const [openInviteDialog, setOpenInviteDialog] = useState(false);
@@ -161,14 +167,15 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
     try {
       const res = await axios.get(`${API}/getPlugins/${serverId}`);
       if (res?.data?.success) {
-        console.log(res?.data, "pluginsdata");
-        setPlugindata(res?.data?.server?.pluginsdata);
+        
+        setPlugindata(res?.data?.plugins);
       }
     } catch (e) {
       console.log(e);
     }
   };
   useEffect(() => {
+    getPlugins()
     if (serverId) {
       getPlugins();
     }
@@ -218,7 +225,6 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
       toast.error(e?.response?.data?.message || "Failed to send invitation");
     }
   };
-  console.log(plugindata, "plugindata");
   const deleteserver = async () => {
     try {
       const res = await axios.post(
@@ -233,34 +239,61 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
       toast.error("Failed to delete server");
     }
   };
+
   return (
     <div className="h-full text-white  w-full">
       <Toaster />
 
-      <div className="h-full flex justify-center   items-center relative w-full ">
+      <div className={`h-full flex  ${path.startsWith("/relm/plugin/") ? "items-end" : " items-center justify-center"
+              } relative w-full `}>
         {/* header  */}
-        <div className="h-[40px] absolute top-0 w-full">
-          <div className="h-full w-full bg-[#2d2d2d33] shadow-lg backdrop-blur-3xl flex justify-between items-center px-2">
+        <div onMouseOver={() =>{
+          // if(path.startsWith("/relm/plugin/")) {
+             setShowLogoutPopup(true)
+          // }
+         
+          }}
+           onMouseLeave={() => {
+          // if(path.startsWith("/relm/plugin/")) {
+            setShowLogoutPopup(false)
+          // }
+          // setShowLogoutPopup(true))
+          }} className={`h-[40px] top-0 absolute w-full`}>
+          <div className={`h-full w-full bg-[#333]
+            ${
+        path.startsWith("/relm/plugin/")
+          ? showLogoutPopup
+            ? "mt-0"    // expanded on hover
+            : "-mt-10"  // collapsed by default
+          : "mt-0"      // normal pages → always visible
+      }
+             duration-300  shadow-lg backdrop-blur-3xl flex justify-between items-center px-2`}>
             <div className="flex  items-center gap-2">
-              <IoChevronBackOutline
+              {/* <IoChevronBackOutline
                 onClick={() => {
-                  dispatch(setOpenPluginwindow(false));
+                  dispatch(setOpenPluginwindow(""));
                 }}
-                className={`mx-2 hover:opacity-80 ${
-                  openPluginwindow ? "" : "hidden"
-                }`}
+                className={`mx-2 hover:opacity-80 ${path.startsWith("/relm/plugin/") ? "" : "hidden"
+                  }`}
                 size={20}
-              />
+              /> */}
+              <div onClick={()=>{
+               router.push("/relm")
+              }} className={`rounded-full bg-[#ececec1c] ${path.startsWith("/relm/plugin/") ? "" : "hidden"
+                  } cursor-pointer p-1`}>
+                <RxCross2  className={` hover:opacity-80 `}
+                size={10}/>
+              </div>
               <div className="h-[30px] w-[30px] bg-[#ececec1c] rounded-[10px]">
                 <img
-                  src={data?.profilePicUrl}
+                  src={path.startsWith("/relm/plugin/") ? currentPluginData?.icon : data?.profilePicUrl}
                   alt="profile"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover rounded-[10px]"
                 />
               </div>
               <div>
-                <div className="text-[14px] font-semibold">
-                  {data?.username}
+                <div className="text-[14px] font-semibold ">
+                  {path.startsWith("/relm/plugin/") ? currentPluginData?.pluginName : data?.username}
                 </div>
               </div>
             </div>
@@ -280,9 +313,8 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
                 <Tooltip.Root>
                   <Tooltip.Trigger asChild>
                     <div
-                      className={`${
-                        path.startsWith("/inServer") ? "" : "hidden"
-                      } sm:h-[40px] hover:opacity-80  duration-300 rounded-[10px] flex items-center px-2 justify-between cursor-pointer`}
+                      className={`${path.startsWith("/relm") ? "" : "hidden"
+                        } sm:h-[40px] hover:opacity-80  duration-300 rounded-[10px] flex items-center px-2 justify-between cursor-pointer`}
                     >
                       <div className="flex items-center pn:max-sm:flex-col pn:max-sm:justify-center gap-2">
                         <RiNotification4Line className="text-[20px] hover:opacity-80 hover:scale-110 transition-all duration-300" />
@@ -346,14 +378,15 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
             )}
           </div>
         ) : (
-          <div className="h-[calc(100%)]  w-full ">{children}</div>
+          <div className="h-[calc(100%)]  w-full  ">
+            {children}
+            </div>
         )}
 
         <Tooltip.Provider delayDuration={100}>
           <div
-            className={`h-[50px]  ${
-              openPluginwindow ? "hidden" : ""
-            } absolute bottom-6`}
+            className={`h-[50px]   ${path.startsWith("/relm/plugin/") ? "hidden" : ""
+              } absolute bottom-6`}
           >
             <div className="h-full w-full flex flex-row rounded-[20px] bg-[#2d2d2d33] shadow-lg backdrop-blur-xl border border-white/10 justify-between items-center p-2 pr-4 gap-4">
               {/* 🔍 Search Bar */}
@@ -392,16 +425,18 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
 
               {/* 🧩 Map max 5 Plugins - recently used */}
               {plugindata?.length > 0 &&
-                path.startsWith("/inServer") &&
+                path.startsWith("/relm") &&
                 plugindata?.slice(0, 5)?.map((item, i) => (
                   <Tooltip.Root key={item?._id || i}>
                     <Tooltip.Trigger asChild>
                       <Link
                         onClick={() => {
-                          dispatch(setOpenPluginwindow(true));
+                          // dispatch(setOpenPluginwindow(true));
+                          dispatch(setOpenPluginwindow(""));
+
                         }}
                         href={{
-                          pathname: "../inServer",
+                          pathname: "../relm",
                           query: {
                             plugin: `${item?.type}`,
                             serverId,
@@ -413,19 +448,19 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
                         <div className="relative h-[35px] rotate-0 hover:rotate-12 hover:scale-110 transition-all duration-300 w-[30px]">
                           {/* Reflection / Shadow box */}
                           <div className="absolute top-[3px] left-[-3px] h-[32px] w-[30px] rounded-sm bg-[#F7F7F7] overflow-hidden">
-                            <Image
-                              src={profile}
-                              alt="plugin"
-                              className="w-full h-full object-cover"
-                            />
+                             <img
+                    src={item?.icon}
+                    alt={item?.pluginName}
+                    className="w-full h-full object-cover"
+                  />
                           </div>
                           {/* Main box */}
                           <div className="relative h-[32px] w-[30px] bg-[#F7F7F7] rounded-sm overflow-hidden">
-                            <Image
-                              src={profile}
-                              alt="plugin"
-                              className="w-full h-full object-cover"
-                            />
+                             <img
+                    src={item?.icon}
+                    alt={item?.pluginName}
+                    className="w-full h-full object-cover"
+                  />
                           </div>
                         </div>
                       </Link>
@@ -436,7 +471,7 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
                         sideOffset={6}
                         className="px-3 py-1.5 text-xs text-white rounded-xl shadow-lg border border-white/20 bg-[#44444433] backdrop-blur-md animate-in fade-in-50"
                       >
-                        {item?.type}
+                        {item?.pluginName}
                         <Tooltip.Arrow className="fill-white/20" />
                       </Tooltip.Content>
                     </Tooltip.Portal>
@@ -447,10 +482,9 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
               <Tooltip.Root>
                 <Tooltip.Trigger asChild>
                   <Link
-                    href="../inServer/members"
-                    className={`${
-                      path.startsWith("/inServer") ? "" : "hidden"
-                    } sm:h-[40px] hover:opacity-80 hover:scale-110 transition-all duration-300 rounded-[10px] flex items-center px-2 justify-between cursor-pointer`}
+                    href="../relm/members"
+                    className={`${path.startsWith("/relm") ? "" : "hidden"
+                      } sm:h-[40px] hover:opacity-80 hover:scale-110 transition-all duration-300 rounded-[10px] flex items-center px-2 justify-between cursor-pointer`}
                   >
                     <div className="flex items-center pn:max-sm:flex-col pn:max-sm:justify-center gap-2">
                       <GoPeople className="text-[20px]" />
@@ -468,7 +502,7 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
                   </Tooltip.Content>
                 </Tooltip.Portal>
               </Tooltip.Root>
-{/* Settings */}
+              {/* Settings */}
               <Tooltip.Provider delayDuration={0}>
                 <Tooltip.Root>
                   <Tooltip.Trigger asChild>
@@ -516,7 +550,7 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
                             </span>
                             <div className="flex items-center gap-1">
                               <span className="text-white text-sm">
-                               100% left
+                                100% left
                               </span>
                               <FiChevronDown className="w-4 h-4 text-gray-400" />
                             </div>
