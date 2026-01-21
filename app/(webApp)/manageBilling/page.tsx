@@ -19,6 +19,8 @@ import { API, formatDateDay } from "../../utils/helpers";
 import { useAuthContext } from "../auth/components/auth";
 import Link from "next/link";
 import { FaServer } from "react-icons/fa";
+import Image from "next/image";
+import Group from "../../../public/Group.svg";
 
 interface Server {
   _id: string;
@@ -101,7 +103,7 @@ const ServerManagement: React.FC = () => {
         sessionStorage.setItem("dbName", encodeURIComponent(server?.dbName));
       }}
       href={{
-        pathname: "../inServer",
+        pathname: `/manage/${server?._id}`,
         // query: {
         //   serverId: server?._id,
         //   dbName: encodeURIComponent(server?.dbName),
@@ -155,10 +157,13 @@ const ServerManagement: React.FC = () => {
           {server?.members} {server?.members > 1 ? "members" : "member"}
         </div>
       </div>
+      <div className="text-gray-600 text-[14px]">Total Storage: {server?.storageallotted} GB </div>
+
       {/* Storage Used */}
       <div className="space-y-2  h-[20%]">
         <div className="flex justify-between items-center text-xs">
-          <span className="text-gray-600">Storage Used</span>
+
+          <span className="text-gray-600">Used</span>
           <span className="font-medium">{server?.storageallotted} GB</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-1.5">
@@ -208,19 +213,17 @@ const ServerManagement: React.FC = () => {
         {/* Expires On */}
         <div
           className={`flex items-center gap-2 px-3 py-1.5 rounded-lg shadow-sm border
-      ${
-        isExpiredSoon(server?.expireson || new Date())
-          ? "bg-red-50 text-red-700 border-red-100"
-          : "bg-purple-50 text-purple-700 border-purple-100"
-      }
+      ${isExpiredSoon(server?.expireson || new Date())
+              ? "bg-red-50 text-red-700 border-red-100"
+              : "bg-purple-50 text-purple-700 border-purple-100"
+            }
     `}
         >
           <Timer
-            className={`w-3.5 h-3.5 ${
-              isExpiredSoon(server?.expireson || new Date())
+            className={`w-3.5 h-3.5 ${isExpiredSoon(server?.expireson || new Date())
                 ? "text-red-600"
                 : "text-purple-600"
-            }`}
+              }`}
           />
           <span className="font-semibold">Expires On:</span>
           <span>{formatDateDay(server?.expireson)}</span>
@@ -243,14 +246,14 @@ const ServerManagement: React.FC = () => {
         <div className="flex items-center space-x-4 h-fit w-full p-2 justify-between bg-white border border-[#f4f4f4da] rounded-2xl">
           <div>
             <h1 className="text-xl font-semibold pl-2 font-space-grotesk text-gray-900">
-            Manage your spaces
+              Manage your spaces
             </h1>
             <p className="text-gray-600 text-sm pl-2 mt-1">
               Manage and monitor your infrastructure
             </p>
           </div>
 
-          <div className={`flex ${servers?.length===0 && "hidden"} items-center space-x-4`}>
+          <div className={`flex ${servers?.length === 0 && "hidden"} items-center space-x-4`}>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
@@ -268,16 +271,17 @@ const ServerManagement: React.FC = () => {
       {/* Created by you section */}
       <div className="  h-[calc(100vh-100px)] p-4 border border-[#f4f4f4da]  rounded-3xl overflow-hidden overflow-y-auto">
         <div className="grid grid-cols-1 md:grid-cols-2  lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {servers?.length>0 && servers.map((server, index) => (
+          {servers?.length > 0 && servers.map((server, index) => (
             <ServerCard key={index} server={server} />
           ))
-       }
+          }
         </div>
-        {servers?.length===0 && (
+        {servers?.length === 0 && (
           <div className="flex flex-col w-full gap-2 h-full items-center justify-center">
-            <FaServer size={25} />
+            {/* <FaServer size={25} /> */}
+            <Image src={Group} alt="" className="w-[100px] h-[100px] object-cover animate-jump-angle" />
             <div className="font-space-grotesk text-[18px]">No Relm found to manage</div>
-            <Link href={"/serverCreation"} className="text-white hover:opacity-[90%] bg-[#000] rounded-[18px] px-8 py-2">Create Now</Link>
+            <Link href={"/serverCreation"} className=" hover:opacity-[90%]  border-2 border-black rounded-[18px] hover:bg-black hover:text-white hover:transition-all hover:duration-500 px-8 py-2 text-black">Create Now</Link>
           </div>
         )}
       </div>

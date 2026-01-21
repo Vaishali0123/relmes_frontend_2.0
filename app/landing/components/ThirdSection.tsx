@@ -1,10 +1,35 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 function ThirdSection() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Array of 5 different carousel items
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        } else {
+          // If scrolling UP (top > 0), hide to trigger reverse animation next time
+          if (entry.boundingClientRect.top > 0) {
+            setIsVisible(false);
+          }
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
   const carouselItems = [
     {
       id: 0,
@@ -36,9 +61,40 @@ function ThirdSection() {
   };
 
   return (
-    <div className="w-full min-h-screen py-8 sm:py-12 md:py-16 px-4 sm:px-6 md:px-8 lg:px-16 xl:px-24">
+    <div
+      ref={sectionRef}
+      className="w-full  min-h-screen py-8 sm:py-12 md:py-16 px-4 sm:px-6 md:px-8 lg:px-16 xl:px-24"
+    >
+      <style jsx>{`
+        @keyframes flyIn {
+          0% {
+            transform: translateY(-100px);
+            opacity: 0;
+          }
+          100% {
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+        @keyframes flyOut {
+          0% {
+            transform: translateY(0);
+            opacity: 1;
+          }
+          100% {
+            transform: translateY(-100px);
+            opacity: 0;
+          }
+        }
+        .animate-fly-in {
+          animation: flyIn 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+        .animate-fly-out {
+          animation: flyOut 0.5s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards;
+        }
+      `}</style>
       {/* Top Section */}
-      <div className="w-full flex flex-col md:flex-row justify-between items-start md:items-center mb-8 sm:mb-10 md:mb-12 lg:mb-16 gap-6 md:gap-0">
+      <div className="w-full flex flex-col md:flex-row justify-between items-start md:items-center mb-8 sm:mb-10 md:mb-12 lg:mb-16 gap-6 md:gap-0 ">
         {/* Left Side - Heading */}
         <div className="mb-0">
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-space-grotesk font-bold text-black leading-tight">
@@ -60,16 +116,18 @@ function ThirdSection() {
 
       {/* Main Content Area */}
       <div className="w-full flex justify-center">
-        <div className="w-full max-w-full sm:max-w-[95%] md:max-w-[90%] rounded-2xl sm:rounded-3xl relative">
+        <div
+          className={`w-full max-w-full sm:max-w-[95%] md:max-w-[90%] rounded-2xl sm:rounded-3xl relative ${isVisible ? "animate-fly-in" : "animate-fly-out opacity-0"
+            }`}
+        >
           {/* Carousel Container */}
-          <div className="w-full h-[400px] sm:h-[450px] md:h-[500px] lg:h-[300px] rounded-xl sm:rounded-2xl relative">
+          <div className="w-full h-[400px]  sm:h-[450px] md:h-[500px] lg:h-[300px] rounded-xl sm:rounded-2xl relative">
             {/* Carousel Items */}
             {carouselItems.map((item, index) => (
               <div
                 key={item.id}
-                className={`absolute inset-0 bg-white rounded-xl sm:rounded-2xl transition-opacity duration-500 ease-in-out ${
-                  index === currentIndex ? "opacity-100 z-0" : "opacity-0 z-0"
-                }`}
+                className={`absolute inset-0 bg-white rounded-xl sm:rounded-2xl transition-opacity duration-500 ease-in-out ${index === currentIndex ? "opacity-100 z-0" : "opacity-0 z-0"
+                  }`}
               >
                 <div
                   className={`w-full h-full bg-gradient-to-br ${item.gradient} rounded-xl sm:rounded-2xl md:rounded-3xl flex items-center justify-center`}
@@ -100,16 +158,16 @@ function ThirdSection() {
                   }`}
                 ></div>
               ))}
-            </div>
+          </div>
 
             {/* Bottom-Left: Watch Button */}
-            <div className="absolute -bottom-1 sm:-bottom-2 -left-1 sm:-left-2 z-10">
+      <div className="absolute -bottom-1 sm:-bottom-2 -left-1 sm:-left-2 z-10">
               <button className="bg-white text-black px-6 py-2 sm:px-8 sm:py-2.5 md:px-10 md:py-3 rounded-tr-2xl sm:rounded-tr-3xl text-sm sm:text-base font-semibold hover:bg-gray-100 active:bg-gray-200 transition-colors">
-                {/* Watch */}
-              </button>
-            </div>
+          {/* Watch */}
+         </button>
+      </div>
 
-            {/* Bottom-Right: Navigation Arrows */}
+        {/* Bottom -Right: Navigation Arrows */}
             <div className="absolute -bottom-1 sm:-bottom-2 bg-white right-6 sm:right-8 md:right-10 rounded-t-2xl sm:rounded-t-3xl px-2 py-1 sm:px-3 sm:py-1.5 flex gap-2 sm:gap-3 z-10">
               <button
                 onClick={goToPrevious}

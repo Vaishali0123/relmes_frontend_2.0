@@ -26,6 +26,8 @@ interface ParamsState {
   searchQuery: string;
   selectedPlugins: SelectedPlugin[];
   selectedPlugin: SelectedPlugin | null;
+  serverName: string;
+  selectedServerPlan: any;
 }
 
 const initialState: ParamsState = {
@@ -40,7 +42,9 @@ const initialState: ParamsState = {
   openPluginwindow: "",
   searchQuery: "",
   selectedPlugins: [],
-  selectedPlugin: null
+  selectedPlugin: null,
+  serverName: "",
+  selectedServerPlan: null,
 };
 
 const paramsSlice = createSlice({
@@ -103,6 +107,9 @@ const paramsSlice = createSlice({
     },
     clearSelectedPlugins: (state) => {
       state.selectedPlugins = [];
+      state.serverName = "";
+      state.selectedServerPlan = null;
+      state.step = 1;
     },
     updateSelectedPlugin: (state, action: PayloadAction<SelectedPlugin>) => {
       const index = state.selectedPlugins.findIndex(
@@ -111,6 +118,12 @@ const paramsSlice = createSlice({
       if (index !== -1) {
         state.selectedPlugins[index] = action.payload;
       }
+    },
+    setServerName: (state, action: PayloadAction<string>) => {
+      state.serverName = action.payload;
+    },
+    setSelectedServerPlan: (state, action: PayloadAction<any>) => {
+      state.selectedServerPlan = action.payload;
     },
   },
 });
@@ -131,7 +144,9 @@ export const {
   removeSelectedPlugin,
   clearSelectedPlugins,
   setSelectedPlugin,
-  updateSelectedPlugin
+  updateSelectedPlugin,
+  setServerName,
+  setSelectedServerPlan,
 } = paramsSlice.actions;
 
 export default paramsSlice.reducer;

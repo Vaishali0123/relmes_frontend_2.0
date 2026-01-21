@@ -13,77 +13,59 @@ function HeroSection() {
   const [section2Visible, setSection2Visible] = useState(false);
   const [showInitialAnimation, setShowInitialAnimation] = useState(true);
 
-  useEffect(() => {
-    const el = section2Ref.current;
-    if (!el || typeof window === "undefined") return;
+  // Use a ref to track the internal state for the scroll handler to avoid closure staleness
+  const isDownRef = useRef(false);
 
-    let userHasScrolled = false;
+  useEffect(() => {
     let timeoutId: NodeJS.Timeout | null = null;
 
     const handleScroll = () => {
-      userHasScrolled = true;
+      const isDown = window.scrollY > 50;
+
+      // Only update if state changes
+      if (isDown !== isDownRef.current) {
+        isDownRef.current = isDown;
+
+        if (isDown) {
+          // Scrolled down (leaving header) -> Fly Down animations
+          setSection2Visible(true);
+          setShowInitialAnimation(false);
+          if (timeoutId) clearTimeout(timeoutId);
+        } else {
+          // Scrolled up (back to header) -> Gather then Separate animations
+          setSection2Visible(false); // Trigger Gather
+          setShowInitialAnimation(false); // Ensure Reverse runs first
+
+          if (timeoutId) clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => {
+            setShowInitialAnimation(true); // Trigger Separate
+          }, 300);
+        }
+      }
     };
+
+    // Initialize state on mount
+    if (typeof window !== "undefined") {
+      const initialIsDown = window.scrollY > 50;
+      isDownRef.current = initialIsDown;
+      if (initialIsDown) {
+        setSection2Visible(true);
+        setShowInitialAnimation(false);
+      }
+    }
 
     window.addEventListener("scroll", handleScroll, { passive: true });
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-
-        if (!userHasScrolled) return; // Do not trigger on load
-
-        // Clear any pending timeout
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-          timeoutId = null;
-        }
-
-        // Log for debugging
-        console.log("Intersection:", {
-          isIntersecting: entry.isIntersecting,
-          intersectionRatio: entry.intersectionRatio,
-          boundingClientRect: entry.boundingClientRect,
-        });
-
-        // Check if section is intersecting (visible) and has at least 10% visible
-        // When fully visible, intersectionRatio should be 1.0 or close to it
-        if (entry.isIntersecting && entry.intersectionRatio >= 0.1) {
-          // Section is visible (at least 10%)
-          setSection2Visible(true);
-          setShowInitialAnimation(false);
-        } else {
-          // Section is not visible (completely out of view or less than 10% visible)
-          // This handles both scrolling down past section 2 and scrolling back up
-          setSection2Visible(false);
-          setShowInitialAnimation(false); // Reset to show reverse animation first
-          // Start initial animations right after reverse animation starts for smoother transition
-          // Reverse animation is 0.5s, start initial animations immediately with CSS delay
-          timeoutId = setTimeout(() => {
-            setShowInitialAnimation(true);
-          }, 300); // Start initial animation classes early, CSS delay handles smooth transition
-        }
-      },
-      {
-        threshold: [0, 0.1, 0.25, 0.5, 0.75, 0.9, 1.0], // Multiple thresholds including 0.9 and 1.0 for full visibility
-      }
-    );
-
-    observer.observe(el);
-
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      observer.disconnect();
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
+      if (timeoutId) clearTimeout(timeoutId);
     };
   }, []);
 
-  // DEBUG: remove console if you don't want logs
+  // DEBUG LOGS (Optional, remove before prod if desired)
   useEffect(() => {
     console.log("section2Visible:", section2Visible);
   }, [section2Visible]);
-  console.log("section2Visible:", section2Visible);
 
   return (
     // Add keyframes for the animation of the boxes
@@ -118,8 +100,8 @@ function HeroSection() {
         }
         .animate-box1 {
           position: relative;
-          animation: boxAnimation1 0.7s ease-in-out forwards;
-          animation-delay: 0.3s;
+          animation: boxAnimation1 0.7s ease-in-out both;
+          animation-delay: 0.1s;
         }
         @keyframes boxAnimation2 {
           0% {
@@ -135,8 +117,8 @@ function HeroSection() {
         }
         .animate-box2 {
           position: relative;
-          animation: boxAnimation2 0.7s ease-in-out forwards;
-          animation-delay: 0.3s;
+          animation: boxAnimation2 0.7s ease-in-out both;
+          animation-delay: 0.1s;
         }
         @keyframes boxAnimation3 {
           0% {
@@ -152,8 +134,8 @@ function HeroSection() {
         }
         .animate-box3 {
           position: relative;
-          animation: boxAnimation3 0.7s ease-in-out forwards;
-          animation-delay: 0.3s;
+          animation: boxAnimation3 0.7s ease-in-out both;
+          animation-delay: 0.1s;
         }
         @keyframes boxAnimation4 {
           0% {
@@ -169,8 +151,8 @@ function HeroSection() {
         }
         .animate-box4 {
           position: relative;
-          animation: boxAnimation4 0.7s ease-in-out forwards;
-          animation-delay: 0.3s;
+          animation: boxAnimation4 0.7s ease-in-out both;
+          animation-delay: 0.1s;
         }
         @keyframes boxAnimation5 {
           0% {
@@ -186,8 +168,8 @@ function HeroSection() {
         }
         .animate-box5 {
           position: relative;
-          animation: boxAnimation5 0.7s ease-in-out forwards;
-          animation-delay: 0.3s;
+          animation: boxAnimation5 0.7s ease-in-out both;
+          animation-delay: 0.1s;
         }
 
         @keyframes textAnimation1 {
@@ -314,7 +296,7 @@ function HeroSection() {
         }
         .animate-box6-reverse {
           position: relative;
-          animation: boxAnimation6Reverse 0.5s ease-in-out forwards;
+          animation: boxAnimation6Reverse 0.3s ease-in-out forwards;
         }
 
         @keyframes boxAnimation7Reverse {
@@ -331,7 +313,7 @@ function HeroSection() {
         }
         .animate-box7-reverse {
           position: relative;
-          animation: boxAnimation7Reverse 0.5s ease-in-out forwards;
+          animation: boxAnimation7Reverse 0.3s ease-in-out forwards;
         }
 
         @keyframes boxAnimation8Reverse {
@@ -348,7 +330,7 @@ function HeroSection() {
         }
         .animate-box8-reverse {
           position: relative;
-          animation: boxAnimation8Reverse 0.5s ease-in-out forwards;
+          animation: boxAnimation8Reverse 0.3s ease-in-out forwards;
         }
 
         @keyframes boxAnimation9Reverse {
@@ -365,7 +347,7 @@ function HeroSection() {
         }
         .animate-box9-reverse {
           position: relative;
-          animation: boxAnimation9Reverse 0.5s ease-in-out forwards;
+          animation: boxAnimation9Reverse 0.3s ease-in-out forwards;
         }
 
         @keyframes boxAnimation10Reverse {
@@ -382,7 +364,7 @@ function HeroSection() {
         }
         .animate-box10-reverse {
           position: relative;
-          animation: boxAnimation10Reverse 0.5s ease-in-out forwards;
+          animation: boxAnimation10Reverse 0.3s ease-in-out forwards;
         }
       `}</style>
       <>
@@ -393,7 +375,7 @@ function HeroSection() {
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
-          className="w-full h-screen pt-24 sm:pt-28 pb-[10vh] flex flex-col items-center justify-between"
+          className="w-full h-screen  pt-24 sm:pt-28 pb-[10vh] flex flex-col items-center justify-between"
         >
           <div className="text-[40px] font-bold font-space-grotesk text-[#3F3F3F] ">
             Piece together your perfect Relm
@@ -401,13 +383,12 @@ function HeroSection() {
           {/* Image can overlap each other */}
           <div className="flex  flex-row  relative ">
             <div
-              className={`w-[210px] relative h-[210px] ${
-                section2Visible
-                  ? "animate-box6"
-                  : showInitialAnimation
+              className={`w-[210px] relative h-[210px] ${section2Visible
+                ? "animate-box6"
+                : showInitialAnimation
                   ? "animate-box1"
                   : "animate-box6-reverse"
-              }  `}
+                }  `}
             >
               <div className="w-[90%] h-[90%] rounded-lg bg-pink-200 overflow-hidden">
                 <Image src={im1} alt="bg" className="w-full h-full " />
@@ -417,13 +398,12 @@ function HeroSection() {
               </div>
             </div>
             <div
-              className={`w-[210px] h-[210px] ${
-                section2Visible
-                  ? "animate-box7"
-                  : showInitialAnimation
+              className={`w-[210px] h-[210px] ${section2Visible
+                ? "animate-box7"
+                : showInitialAnimation
                   ? "animate-box2"
                   : "animate-box7-reverse"
-              } `}
+                } `}
             >
               <div className="w-[90%] h-[90%] rounded-lg overflow-hidden bg-red-200">
                 <Image src={im2} alt="bg" className="w-full h-full " />
@@ -433,13 +413,12 @@ function HeroSection() {
               </div>
             </div>
             <div
-              className={`w-[210px] h-[210px] ${
-                section2Visible
-                  ? "animate-box8"
-                  : showInitialAnimation
+              className={`w-[210px] h-[210px] ${section2Visible
+                ? "animate-box8"
+                : showInitialAnimation
                   ? "animate-box3"
                   : "animate-box8-reverse"
-              } `}
+                } `}
             >
               <div className="w-[90%] h-[90%] rounded-lg overflow-hidden bg-yellow-200">
                 <Image src={im3} alt="bg" className="w-full h-full " />
@@ -449,13 +428,12 @@ function HeroSection() {
               </div>
             </div>
             <div
-              className={`w-[210px] h-[210px] ${
-                section2Visible
-                  ? "animate-box9"
-                  : showInitialAnimation
+              className={`w-[210px] h-[210px] ${section2Visible
+                ? "animate-box9"
+                : showInitialAnimation
                   ? "animate-box4"
                   : "animate-box9-reverse"
-              } `}
+                } `}
             >
               <div className="w-[90%] h-[90%] rounded-lg overflow-hidden bg-green-200">
                 <Image src={im4} alt="bg" className="w-full h-full " />
@@ -465,13 +443,12 @@ function HeroSection() {
               </div>
             </div>
             <div
-              className={`w-[210px] h-[210px] ${
-                section2Visible
-                  ? "animate-box10"
-                  : showInitialAnimation
+              className={`w-[210px] h-[210px] ${section2Visible
+                ? "animate-box10"
+                : showInitialAnimation
                   ? "animate-box5"
                   : "animate-box10-reverse"
-              } `}
+                } `}
             >
               <div className="w-[90%] h-[90%] rounded-lg overflow-hidden bg-blue-200">
                 <Image src={im5} alt="bg" className="w-full h-full " />

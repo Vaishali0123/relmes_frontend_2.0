@@ -19,10 +19,10 @@ const page = () => {
       <ThirdSection />
       <TrustedByUs />
       <Features />
-      {/* <Howitworks /> */}
-      {/* <Requirement /> */}
-      {/* <Plugins /> */}
-      {/* <Pricings /> */}
+      <Howitworks />
+      <Requirement />
+      <Plugins />
+      <Pricings />
       <Footer />
     </div>
   );

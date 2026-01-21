@@ -20,9 +20,10 @@ interface Server {
 
 export default function PluginDetailPage() {
   const params = useParams();
+ 
   const router = useRouter();
   const pluginId = params.id as string;
-  console.log(pluginId, "pluginId");
+
   const { data } = useAuthContext();
   const [selectedPlan, setSelectedPlan] = useState<
     "basic" | "pro" | "enterprise"
@@ -30,20 +31,36 @@ export default function PluginDetailPage() {
   const [selectedServerId, setSelectedServerId] = useState<string>("");
   const [servers, setServers] = useState<Server[]>([]);
   const [loading, setLoading] = useState(false);
-
-  const plugin = mockPlugins.find((p) => p.id === pluginId);
+const [plugin,setPlugin]=useState<Plugin | null>(null)
+  // const plugin = mockPlugins.find((p) => p.id === pluginId);
 
   useEffect(() => {
     if (data?.id) {
       getUserServers();
     }
+    getPluginData()
   }, [data?.id]);
 
   const getUserServers = async () => {
     try {
       const res = await axios.get(`${API}/getUserServers/${data?.id}`);
       if (res?.data) {
-        setServers(res?.data);
+        setServers(res?.data?.plugin);
+        if (res?.data.length > 0 && !selectedServerId) {
+          setSelectedServerId(res?.data[0]._id);
+        }
+      }
+    } catch (e) {
+      console.log(e);
+      toast.error("Failed to load servers");
+    }
+  };
+  const getPluginData = async () => {
+    try {
+      const res = await axios.get(`${API}/getPluginData/${pluginId}`);
+      if (res?.data) {
+        console.log(res?.data,"res")
+        setPlugin(res?.data);
         if (res?.data.length > 0 && !selectedServerId) {
           setSelectedServerId(res?.data[0]._id);
         }
@@ -154,11 +171,11 @@ export default function PluginDetailPage() {
 
   return (
     <div className="min-h-screen bg-red-500 w-full overflow-y-auto ">
-      <div className="max-w-5xl bg-slate-500 mx-auto">
+      <div className="max-w-5xl bg-white mx-auto">
         {/* Back Button */}
         <Link
           href="/marketPlace"
-          className="inline-flex items-center gap-2 bg-black text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+          className="inline-flex items-center gap-2  text-gray-600 hover:text-gray-900 mb-6 transition-colors"
         >
           <ArrowLeft className="h-5 w-5" />
           <span>Back to Marketplace</span>
@@ -191,7 +208,7 @@ export default function PluginDetailPage() {
               </p>
               <div className="flex items-center gap-4 mt-4 flex-wrap">
                 <div className="flex items-center gap-2">
-                  {renderStars(plugin.rating)}
+                  {/* {renderStars(plugin.rating)} */}
                   <span className="font-semibold text-gray-900">
                     {plugin.rating}
                   </span>
@@ -219,7 +236,7 @@ export default function PluginDetailPage() {
               Features
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {plugin.features.map((feature, index) => (
+              {plugin?.features?.map((feature, index) => (
                 <div key={index} className="flex items-center gap-2">
                   <Check className="h-5 w-5 text-green-500 shrink-0" />
                   <span className="text-gray-700">{feature}</span>
@@ -253,14 +270,14 @@ export default function PluginDetailPage() {
                 </h3>
                 <div className="mb-4">
                   <span className="text-3xl font-bold text-gray-900">
-                    ${plugin.pricing.basic.price}
+                    ${plugin?.pricing?.basic?.price}
                   </span>
-                  {plugin.pricing.basic.price > 0 && (
+                  {plugin?.pricing?.basic?.price > 0 && (
                     <span className="text-gray-500 text-sm">/month</span>
                   )}
                 </div>
                 <ul className="space-y-2 mb-4">
-                  {plugin.pricing.basic.features.map((feature, index) => (
+                  {plugin?.pricing?.basic?.features?.map((feature, index) => (
                     <li key={index} className="flex items-start gap-2 text-sm">
                       <Check className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
                       <span className="text-gray-700">{feature}</span>
@@ -291,7 +308,7 @@ export default function PluginDetailPage() {
                       : undefined
                   }
                 >
-                  {plugin.pricing.basic.price === 0
+                  {plugin?.pricing?.basic?.price === 0
                     ? "Get Started"
                     : "Select Plan"}
                 </button>
@@ -326,12 +343,12 @@ export default function PluginDetailPage() {
                 </h3>
                 <div className="mb-4">
                   <span className="text-3xl font-bold text-gray-900">
-                    ${plugin.pricing.pro.price}
+                    ${plugin?.pricing?.pro?.price}
                   </span>
                   <span className="text-gray-500 text-sm">/month</span>
                 </div>
                 <ul className="space-y-2 mb-4">
-                  {plugin.pricing.pro.features.map((feature, index) => (
+                  {plugin?.pricing?.pro?.features?.map((feature, index) => (
                     <li key={index} className="flex items-start gap-2 text-sm">
                       <Check className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
                       <span className="text-gray-700">{feature}</span>
@@ -383,12 +400,12 @@ export default function PluginDetailPage() {
                 </h3>
                 <div className="mb-4">
                   <span className="text-3xl font-bold text-gray-900">
-                    ${plugin.pricing.enterprise.price}
+                    ${plugin?.pricing?.enterprise?.price}
                   </span>
                   <span className="text-gray-500 text-sm">/month</span>
                 </div>
                 <ul className="space-y-2 mb-4">
-                  {plugin.pricing.enterprise.features.map((feature, index) => (
+                  {plugin?.pricing?.enterprise?.features?.map((feature, index) => (
                     <li key={index} className="flex items-start gap-2 text-sm">
                       <Check className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
                       <span className="text-gray-700">{feature}</span>
@@ -430,7 +447,7 @@ export default function PluginDetailPage() {
             <h2 className="text-xl font-semibold text-gray-900 mb-3">
               Select Server
             </h2>
-            {servers.length === 0 ? (
+            {servers?.length === 0 ? (
               <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <p className="text-yellow-800 text-sm mb-2">
                   No servers found. Please create a server first.
@@ -445,7 +462,7 @@ export default function PluginDetailPage() {
               </div>
             ) : (
               <div className="space-y-2">
-                {servers.map((server) => (
+                {servers?.map((server) => (
                   <div
                     key={server._id}
                     onClick={() => setSelectedServerId(server._id)}
@@ -509,14 +526,14 @@ export default function PluginDetailPage() {
                 !e.currentTarget.disabled &&
                 (e.currentTarget.style.backgroundColor = "#FDD78D")
               }
-              disabled={!selectedServerId || servers.length === 0 || loading}
+              disabled={!selectedServerId || servers?.length === 0 || loading}
               onClick={handleInstallPlugin}
             >
               {loading
                 ? "Processing..."
-                : plugin.pricing[selectedPlan].price === 0
+                : plugin?.pricing?.[selectedPlan]?.price === 0
                 ? "Install Free"
-                : `Subscribe - $${plugin.pricing[selectedPlan].price}/month`}
+                : `Subscribe - $${plugin?.pricing?.[selectedPlan]?.price}/month`}
             </button>
             <Link
               href="/marketPlace"

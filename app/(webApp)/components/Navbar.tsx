@@ -16,10 +16,10 @@ import toast from "react-hot-toast";
 import Cookies from "js-cookie";
 import { Check } from "lucide-react";
 import { differenceInDays } from "date-fns";
-import { GoPeople } from "react-icons/go";
 import { useAppDispatch, useAppSelector } from "@/app/redux/hooks";
 import { setStep } from "@/app/redux/slices/paramsSlice";
-
+import { VscExtensions } from "react-icons/vsc";
+import { LuMonitorCog } from "react-icons/lu";
 const formatDate = (dateStr: string) => {
   const date = new Date(dateStr);
   const day = date.getDate();
@@ -45,7 +45,7 @@ const Navbar = () => {
   // It is in query
   const serverId = searchParams.get("serverId");
   const dbName = searchParams.get("dbName");
-  const { step } = useAppSelector((state) => state.params);
+  const { step, serverName, selectedServerPlan } = useAppSelector((state) => state.params);
 
   //  const [step, setStep] = useState(1);
   const [servers, setServers] = useState<
@@ -219,7 +219,7 @@ const Navbar = () => {
   };
   const daysLeft = data?.createdAt ? getDaysLeft(data?.createdAt) : 0;
   return (
-    <div className="w-full pn:max-sm:flex flex-row-reverse  pn:max-sm:border border-[#f4f4f4da] items-center sm:min-w-[50px] rounded-t-2xl pn:max-sm:bg-white pn:max-sm:h-fit  sm:h-full">
+    <div className="w-full  pn:max-sm:flex flex-row-reverse  pn:max-sm:border border-[#f4f4f4da] items-center sm:min-w-[50px] rounded-t-2xl pn:max-sm:bg-white pn:max-sm:h-fit  sm:h-full">
       {/* header  */}
       <div className="h-[80px] sm:w-full rounded-2xl  p-2 ">
         <div className="h-full w-full rounded-[20px] bg-[#f4f4f4da] sm:bg-white  flex gap-2 items-center px-2">
@@ -238,25 +238,22 @@ const Navbar = () => {
         </div>
       </div>
       {/* main  */}
-      <div className="  sm:h-full p-2 text-[14px] font-space-grotesk pn:max-sm:h-[80px] ">
+      <div className="  sm:h-full  p-2 text-[14px] font-space-grotesk pn:max-sm:h-[80px] ">
         <div className="sm:bg-white  sm:h-[calc(100%-80px)]  p-2 sm:rounded-3xl pn:max-sm:w-full">
           <div className="h-full w-full  sm:bg-[#fcfcfc]  sm:rounded-3xl sm:p-2 flex  sm:flex-col">
             <div
-              className={`${
-                path.startsWith("/serverCreation") ? "hidden" : ""
-              } "w-full sm:space-y-2 pn:max-sm:flex justify-between"`}
+              className={`${path.startsWith("/serverCreation") ? "hidden" : ""
+                } "w-full sm:space-y-2 pn:max-sm:flex justify-between"`}
             >
               {/* your severs  */}
               <div
-                className={`${
-                  path.startsWith("/serverCreation") ? "hidden" : ""
-                } "sm:bg-white  sm:w-full pn:max-sm:flex  pn:max-sm:justify-center bg-white  rounded-2xl "`}
+                className={`${path.startsWith("/serverCreation") ? "hidden" : ""
+                  } "sm:bg-white  sm:w-full pn:max-sm:flex  pn:max-sm:justify-center bg-white  rounded-2xl "`}
               >
                 {/* Add server/plugins  */}
                 <div
-                  className={`${
-                    path.startsWith("/serverCreation") ? "hidden" : ""
-                  } sm:h-[50px] w-full rounded-2xl  flex items-center px-2 justify-between`}
+                  className={`${path.startsWith("/serverCreation") ? "hidden" : ""
+                    } sm:h-[50px] w-full rounded-2xl  flex items-center px-2 justify-between`}
                 >
                   <Link
                     href="../home"
@@ -264,7 +261,7 @@ const Navbar = () => {
                   >
                     <TbServerSpark className="text-[20px]" />
                     <div className="pn:max-sm:text-[12px]">
-                      {path.startsWith("/relm") ? "Plugins" : "Your Realms"}
+                      {path.startsWith("/relm") ? "Plugins" : "Your Relmes"}
                     </div>
                   </Link>
                   {/* add server */}
@@ -297,21 +294,20 @@ const Navbar = () => {
                     </svg>
 
                     <div
-                      className={`${
-                        (path.startsWith("/relm") ||
-                          path.startsWith("/serverCreation")) &&
+                      className={`${(path.startsWith("/relm") ||
+                        path.startsWith("/serverCreation")) &&
                         "hidden"
-                      } pn:max-sm:bg-white pn:max-sm:border border-[#f4f4f4da] max-h-[300px] overflow-y-auto pn:max-sm:h-[200px]  sm:w-full pn:max-sm:absolute pn:max-sm:p-3  gap-2 bottom-14 left-2 pn:max-sm:flex pn:max-sm:flex-col-reverse pn:max-sm:justify-center  rounded-2xl `}
+                        } pn:max-sm:bg-white pn:max-sm:border border-[#f4f4f4da] max-h-[300px] overflow-y-auto pn:max-sm:h-[200px]  sm:w-full pn:max-sm:absolute pn:max-sm:p-3  gap-2 bottom-14 left-2 pn:max-sm:flex pn:max-sm:flex-col-reverse pn:max-sm:justify-center  rounded-2xl `}
                     >
                       {/* your server  */}
                       {servers?.map((server, index: number) => (
                         <Link
-                        onClick={()=>{
-                          sessionStorage.setItem("serverId", server?._id);
-                          sessionStorage.setItem("dbName", encodeURIComponent(server?.dbName));
-                        }}
+                          onClick={() => {
+                            sessionStorage.setItem("serverId", server?._id);
+                            sessionStorage.setItem("dbName", encodeURIComponent(server?.dbName));
+                          }}
                           href={{
-                            pathname: "../relm",
+                            pathname: "/relm",
                             // query: {
                             //   serverId: server?._id,
                             //   dbName: encodeURIComponent(server?.dbName),
@@ -409,9 +405,8 @@ const Navbar = () => {
                 onClick={() => {
                   setDeletepop(true);
                 }}
-                className={`h-[40px] ${
-                  path.startsWith("/relm") ? "" : "hidden"
-                } cursor-pointer sm:w-full bg-red-600 hover:bg-red-500 text-white pn:max-sm:hidden rounded-2xl flex items-center px-2 justify-between`}
+                className={`h-[40px] ${path.startsWith("/relm") ? "" : "hidden"
+                  } cursor-pointer sm:w-full bg-red-600 hover:bg-red-500 text-white pn:max-sm:hidden rounded-2xl flex items-center px-2 justify-between`}
               >
                 <div className="flex items-center pn:max-sm:flex-col pn:max-sm:justify-center gap-2">
                   <MdDelete className="text-[20px]" />
@@ -445,13 +440,12 @@ const Navbar = () => {
               {/* Explore Plugins */}
               <Link
                 href="/explorePlugins"
-                className={`${
-                  path.startsWith("/serverCreation") ||
+                className={`${path.startsWith("/serverCreation") ||
                   (path.startsWith("/relm") && "hidden")
-                } sm:h-[40px] sm:w-full rounded-2xl flex items-center px-2 justify-between`}
+                  } sm:h-[40px] sm:w-full rounded-2xl flex items-center px-2 justify-between`}
               >
                 <div className="flex items-center pn:max-sm:flex-col pn:max-sm:justify-center  gap-2">
-                  <CiViewList className="text-[20px]" />
+                  <VscExtensions size={18} />
                   <div className="pn:max-sm:text-[12px] pn:max-sm:">
                     Explore Plugins
                   </div>
@@ -461,16 +455,15 @@ const Navbar = () => {
               <Link
                 href="../manageBilling"
                 // onClick={() => setSection(2)}
-                className={`${
-                  (path.startsWith("/serverCreation") ||
-                    path.startsWith("/relm")) &&
+                className={`${(path.startsWith("/serverCreation") ||
+                  path.startsWith("/relm")) &&
                   "hidden"
-                } sm:h-[40px] sm:w-full rounded-2xl flex items-center px-2 justify-between`}
+                  } sm:h-[40px] sm:w-full rounded-2xl flex items-center px-2 justify-between`}
               >
                 <div className="flex items-center pn:max-sm:flex-col pn:max-sm:justify-center  gap-2">
-                  <CiViewList className="text-[20px]" />
+                  <LuMonitorCog className="text-[20px]" />
                   <div className="pn:max-sm:text-[12px] pn:max-sm:">
-                    Manage & Billing
+                    Monitor Relmes
                   </div>
                 </div>
               </Link>
@@ -479,9 +472,8 @@ const Navbar = () => {
               <Link
                 href="../settings"
                 // onClick={() => setSection(3)}
-                className={`${
-                  path.startsWith("/serverCreation") && "hidden"
-                } h-[40px] sm:w-full cursor-pointer pn:max-sm:hidden rounded-2xl flex items-center px-2 justify-between`}
+                className={`${path.startsWith("/serverCreation") && "hidden"
+                  } h-[40px] sm:w-full cursor-pointer pn:max-sm:hidden rounded-2xl flex items-center px-2 justify-between`}
               >
                 <div className="flex items-center pn:max-sm:flex-col pn:max-sm:justify-center gap-2">
                   <IoSettingsOutline className="text-[20px]" />
@@ -496,24 +488,30 @@ const Navbar = () => {
                   {steps.map((stepItem) => (
                     <div
                       key={stepItem.id}
-                      className={`cursor-pointer transition-all duration-200 ${
-                        step === stepItem.id ? "opacity-100" : "opacity-60"
-                      }`}
+                      className={`cursor-pointer transition-all duration-200 ${step === stepItem.id ? "opacity-100" : "opacity-60"
+                        }`}
                       onClick={() => {
+                        // Validation logic
+                        if (stepItem.id > 1) {
+                          if (!serverName || !serverName.trim() ) {
+                            toast.error("Please fill the step by step details first");
+                            return;
+                          }
+                        }
+
                         dispatch(setStep(stepItem.id));
-                        setStep(stepItem.id);
+                        // setStep(stepItem.id); 
                       }}
                     >
                       <div className="flex items-center gap-3">
                         {/* step number  */}
                         <div
-                          className={`h-8 w-8 rounded-full border   flex items-center justify-center text-sm font-medium transition-colors ${
-                            step === stepItem.id
-                              ? "bg-primary text-primary-foreground bg-[#FFDD99] border-[#FFDD99] border-primary"
-                              : step > stepItem.id
+                          className={`h-8 w-8 rounded-full border   flex items-center justify-center text-sm font-medium transition-colors ${step === stepItem.id
+                            ? "bg-primary text-primary-foreground bg-[#FFDD99] border-[#FFDD99] border-primary"
+                            : step > stepItem.id
                               ? "bg-success text-success-foreground  border-success"
                               : "border-border text-muted-foreground "
-                          }`}
+                            }`}
                         >
                           {step > stepItem.id ? (
                             <Check className="h-4 w-4" />
@@ -524,11 +522,10 @@ const Navbar = () => {
                         <div>
                           {/* title  */}
                           <div
-                            className={`font-medium font-space-grotesk ${
-                              step === stepItem.id
-                                ? "text-foreground"
-                                : "text-muted-foreground"
-                            }`}
+                            className={`font-medium font-space-grotesk ${step === stepItem.id
+                              ? "text-foreground"
+                              : "text-muted-foreground"
+                              }`}
                           >
                             {stepItem.title}
                           </div>
@@ -540,11 +537,10 @@ const Navbar = () => {
                       </div>
 
                       <div
-                        className={`${
-                          stepItem.id === 3
-                            ? "hidden"
-                            : "h-[80px] w-[30px] flex items-center justify-center"
-                        }`}
+                        className={`${stepItem.id === 3
+                          ? "hidden"
+                          : "h-[80px] w-[30px] flex items-center justify-center"
+                          }`}
                       >
                         <div className="h-full border-dashed border-l border-success"></div>
                       </div>
@@ -555,9 +551,8 @@ const Navbar = () => {
             )}
 
             <div
-              className={`${
-                path.startsWith("/serverCreation") ? "" : "hidden"
-              } " self-end h-full justify-end flex flex-col w-full pn:max-sm:hidden" `}
+              className={`${path.startsWith("/serverCreation") ? "" : "hidden"
+                } " self-end h-full justify-end flex flex-col w-full pn:max-sm:hidden" `}
             >
               <div className="border-[#D4D4D4] border-t"></div>
 
@@ -600,9 +595,8 @@ const Navbar = () => {
               )}
             </div>
             <div
-              className={`${
-                path.startsWith("/serverCreation") ? "hidden" : ""
-              } " self-end h-full justify-end flex flex-col w-full pn:max-sm:hidden" `}
+              className={`${path.startsWith("/serverCreation") ? "hidden" : ""
+                } " self-end h-full justify-end flex flex-col w-full pn:max-sm:hidden" `}
             >
               {/* dark/light Modes  */}
               <div className="border-[#D4D4D4] border-t"></div>

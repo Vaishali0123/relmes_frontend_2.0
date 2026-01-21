@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { Camera, Server } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 import { API } from "@/app/utils/helpers";
 import { useAuthContext } from "../auth/components/auth";
 import { useAppDispatch, useAppSelector } from "@/app/redux/hooks";
-import { setSelectedPlugins, setStep, removeSelectedPlugin, SelectedPlugin, updateSelectedPlugin } from "@/app/redux/slices/paramsSlice";
+import { setSelectedPlugins, setStep, removeSelectedPlugin, SelectedPlugin, updateSelectedPlugin, setServerName, setSelectedServerPlan } from "@/app/redux/slices/paramsSlice";
 import MarketPlace from "../components/MarketPlace";
 import { BsPlug } from "react-icons/bs";
 import { TbServer2 } from "react-icons/tb";
@@ -51,8 +51,8 @@ const ServerCreation = () => {
   const navigate = useRouter();
   const dispatch = useAppDispatch();
   // const [step, setStep] = useState(1);
-  const { step } = useAppSelector((state) => state.params);
-  const [name, setName] = useState("");
+  const { step, serverName, selectedServerPlan } = useAppSelector((state) => state.params);
+  // const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
   const [validity, setValidity] = useState(0);
@@ -62,7 +62,7 @@ const ServerCreation = () => {
   // const [selectedPlugins, setSelectedPlugins] = useState<Plugin[]>([]);
   const [serverplans, setServerplans] = useState<any[]>([]);
   const [plugins, setPlugins] = useState<any[]>([]);
-  const [selectedServerPlan, setSelectedServerPlan] = useState<any>(null);
+  // const [selectedServerPlan, setSelectedServerPlan] = useState<any>(null);
   const { data } = useAuthContext(); // Assuming you have a context to get user data
   // Using mock data - replace with actual auth context
   const userData = mockUserData;
@@ -96,7 +96,7 @@ const ServerCreation = () => {
 
   const handleServerPlanSelect = (plan: any) => {
     setMembershipId(plan._id);
-    setSelectedServerPlan(plan);
+    dispatch(setSelectedServerPlan(plan));
     // Reset plugins if server plan validity is less than any selected plugin validity
     if (selectedPlugins.length > 0) {
       const invalidPlugins = selectedPlugins.filter(
@@ -170,9 +170,32 @@ const ServerCreation = () => {
     //   return;
     // }
 
+    // Calculate total amount
+    const totalAmount = (selectedServerPlan?.price || 0) + selectedPlugins.reduce((sum, p) => sum + p.price, 0);
+
+    if (totalAmount > 0) {
+      try {
+        const res = await axios.post("/api/checkout", {
+          amount: totalAmount,
+          serverName: serverName,
+          plan: selectedServerPlan,
+          plugins: selectedPlugins,
+        });
+
+        if (res.data.url) {
+          window.location.href = res.data.url;
+          return;
+        }
+      } catch (error) {
+        console.error("Payment initiation failed", error);
+        toast.error("Failed to initiate payment");
+        return;
+      }
+    }
+
     try {
       const formData = new FormData();
-      formData.append("name", name);
+      formData.append("name", serverName);
       // formData.append("slug", slug);
       formData.append("description", description);
       // formData.append("storageallotted", storageAllotted.toString());
@@ -272,7 +295,6 @@ const ServerCreation = () => {
 
   return (
     <div className="h-screen p-2 flex items-center justify-center">
-      <Toaster position="top-right" />
 
       <div className="flex h-full">
         {/* step 1 */}
@@ -324,7 +346,7 @@ const ServerCreation = () => {
                         id="iconInput"
                         onChange={handleIconChange}
                       />
-                      <div className="h-16 w-16 relative rounded-2xl shadow-md bg-[#ffffff] flex items-center justify-center hover:bg-muted/80 transition-colors">
+                      <div className="h-16 w-16 relative outline-none rounded-2xl shadow-md bg-[#ffffff] flex items-center justify-center hover:bg-muted/80 transition-colors">
                         {preview ? (
                           <img
                             src={preview}
@@ -350,8 +372,8 @@ const ServerCreation = () => {
                     <Label htmlFor="serverName">Server Name</Label>
                     <Input
                       id="serverName"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      value={serverName}
+                      onChange={(e) => dispatch(setServerName(e.target.value))}
                       placeholder="Enter server name"
                       className="mt-1"
                     />
@@ -540,7 +562,7 @@ const ServerCreation = () => {
                   }
                   className="w-[400px] self-center flex mt-4 absolute bottom-4 right-4 bg-[#F9D199]"
                   disabled={
-                    step === 1 && (!name || !slug.trim() || !selectedServerPlan)
+                    step === 1 && (!serverName || !slug.trim() || !selectedServerPlan)
                   }
                 >
                   {step === 1 ? "Continue to Plugins" : "Proceed"}

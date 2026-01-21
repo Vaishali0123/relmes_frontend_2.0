@@ -117,7 +117,7 @@ const pluginId = sessionStorage.getItem("pluginId");
     >
 
       <iframe
-        src={`http://localhost:3001/?dbName=${encoded}&userId=${userId}&serverId=${serverId}`}
+        src={`${currentPluginData?.productiondomain}/?dbName=${encoded}&userId=${userId}&serverId=${serverId}`}
         className="w-full h-full "
       />
 

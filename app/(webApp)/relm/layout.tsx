@@ -46,6 +46,8 @@ import BillingPage from "./payments/page";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import InviteUserDialog from "../components/InviteUserDialog";
+import MembersDialog from "../components/MembersDialog";
 interface MainLayoutProps {
   children: ReactNode;
 }
@@ -56,7 +58,7 @@ export interface PluginData {
   expireson?: string;
   pluginName?: string;
   icon?: string;
-productiondomain:string;
+  productiondomain: string;
 
 }
 // Add some raw data for the plugins
@@ -151,23 +153,19 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
   const [deletepop, setDeletepop] = useState(false);
   const free = searchparams.get("free");
   const adminId = data?.id;
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const day = date.getDate();
-    const monthShort = date.toLocaleString("default", { month: "short" }); // Jan, Feb...
-    const year = date.getFullYear();
-    return `upto ${day} ${monthShort} ${year}`;
-  };
-  const currentPluginData =JSON.parse(sessionStorage.getItem("currentPluginData") || "{}")
-  const [openProfile, setOpenProfile] = useState(false);
+ 
+  const currentPluginData = JSON.parse(sessionStorage.getItem("currentPluginData") || "{}")
+
   const [openBillingDialog, setOpenBillingDialog] = useState(false);
   const [openInviteDialog, setOpenInviteDialog] = useState(false);
+  const [openMembersDialog, setOpenMembersDialog] = useState(false);
+  const [openSettingsTooltip, setOpenSettingsTooltip] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const getPlugins = async () => {
     try {
       const res = await axios.get(`${API}/getPlugins/${serverId}`);
       if (res?.data?.success) {
-        
+
         setPlugindata(res?.data?.plugins);
       }
     } catch (e) {
@@ -180,6 +178,8 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
       getPlugins();
     }
   }, [serverId]);
+  const [storageused,setStorageused]=useState(0)
+  const [isOverLimit,setIsOverLimit]=useState(false)
   const getrequests = async () => {
     try {
       const res = await axios.get(`${API}/getrequests/${serverId}`);
@@ -239,34 +239,49 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
       toast.error("Failed to delete server");
     }
   };
+  const getStorage=async()=>{
+    try{
+const res=await axios.get(`${API}/storage/servers/${serverId}/data-with-storage`)
+console.log(res?.data,"jhbhj")
+if(res?.data?.success){
+  setStorageused(res?.data?.storage?.usagePercentage)
+  setIsOverLimit(res?.data?.storage?.isOverLimit)
+}
+    }
+    catch(e){
+      console.log(e)
+    }
+  }
 
+  useEffect(()=>{
+    getStorage()
+  },[])
   return (
     <div className="h-full text-white  w-full">
       <Toaster />
 
       <div className={`h-full flex  ${path.startsWith("/relm/plugin/") ? "items-end" : " items-center justify-center"
-              } relative w-full `}>
+        } relative w-full `}>
         {/* header  */}
-        <div onMouseOver={() =>{
+        <div onMouseOver={() => {
           // if(path.startsWith("/relm/plugin/")) {
-             setShowLogoutPopup(true)
+          setShowLogoutPopup(true)
           // }
-         
-          }}
-           onMouseLeave={() => {
-          // if(path.startsWith("/relm/plugin/")) {
+
+        }}
+          onMouseLeave={() => {
+            // if(path.startsWith("/relm/plugin/")) {
             setShowLogoutPopup(false)
-          // }
-          // setShowLogoutPopup(true))
+            // }
+            // setShowLogoutPopup(true))
           }} className={`h-[40px] top-0 absolute w-full`}>
-          <div className={`h-full w-full bg-[#333]
-            ${
-        path.startsWith("/relm/plugin/")
-          ? showLogoutPopup
-            ? "mt-0"    // expanded on hover
-            : "-mt-10"  // collapsed by default
-          : "mt-0"      // normal pages → always visible
-      }
+          <div className={`h-full w-full bg-[#2d2d2d33]
+            ${path.startsWith("/relm/plugin/")
+              ? showLogoutPopup
+                ? "mt-0"    // expanded on hover
+                : "-mt-10"  // collapsed by default
+              : "mt-0"      // normal pages → always visible
+            }
              duration-300  shadow-lg backdrop-blur-3xl flex justify-between items-center px-2`}>
             <div className="flex  items-center gap-2">
               {/* <IoChevronBackOutline
@@ -277,12 +292,12 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
                   }`}
                 size={20}
               /> */}
-              <div onClick={()=>{
-               router.push("/relm")
+              <div onClick={() => {
+                router.push("/relm")
               }} className={`rounded-full bg-[#ececec1c] ${path.startsWith("/relm/plugin/") ? "" : "hidden"
-                  } cursor-pointer p-1`}>
-                <RxCross2  className={` hover:opacity-80 `}
-                size={10}/>
+                } cursor-pointer p-1`}>
+                <RxCross2 className={` hover:opacity-80 `}
+                  size={10} />
               </div>
               <div className="h-[30px] w-[30px] bg-[#ececec1c] rounded-[10px]">
                 <img
@@ -380,7 +395,7 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
         ) : (
           <div className="h-[calc(100%)]  w-full  ">
             {children}
-            </div>
+          </div>
         )}
 
         <Tooltip.Provider delayDuration={100}>
@@ -448,19 +463,19 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
                         <div className="relative h-[35px] rotate-0 hover:rotate-12 hover:scale-110 transition-all duration-300 w-[30px]">
                           {/* Reflection / Shadow box */}
                           <div className="absolute top-[3px] left-[-3px] h-[32px] w-[30px] rounded-sm bg-[#F7F7F7] overflow-hidden">
-                             <img
-                    src={item?.icon}
-                    alt={item?.pluginName}
-                    className="w-full h-full object-cover"
-                  />
+                            <img
+                              src={item?.icon}
+                              alt={item?.pluginName}
+                              className="w-full h-full object-cover"
+                            />
                           </div>
                           {/* Main box */}
                           <div className="relative h-[32px] w-[30px] bg-[#F7F7F7] rounded-sm overflow-hidden">
-                             <img
-                    src={item?.icon}
-                    alt={item?.pluginName}
-                    className="w-full h-full object-cover"
-                  />
+                            <img
+                              src={item?.icon}
+                              alt={item?.pluginName}
+                              className="w-full h-full object-cover"
+                            />
                           </div>
                         </div>
                       </Link>
@@ -481,15 +496,15 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
               {/* 👥 Members */}
               <Tooltip.Root>
                 <Tooltip.Trigger asChild>
-                  <Link
-                    href="../relm/members"
+                  <div
+                    onClick={() => setOpenMembersDialog(true)}
                     className={`${path.startsWith("/relm") ? "" : "hidden"
                       } sm:h-[40px] hover:opacity-80 hover:scale-110 transition-all duration-300 rounded-[10px] flex items-center px-2 justify-between cursor-pointer`}
                   >
                     <div className="flex items-center pn:max-sm:flex-col pn:max-sm:justify-center gap-2">
                       <GoPeople className="text-[20px]" />
                     </div>
-                  </Link>
+                  </div>
                 </Tooltip.Trigger>
                 <Tooltip.Portal>
                   <Tooltip.Content
@@ -504,9 +519,12 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
               </Tooltip.Root>
               {/* Settings */}
               <Tooltip.Provider delayDuration={0}>
-                <Tooltip.Root>
+                <Tooltip.Root open={openSettingsTooltip} onOpenChange={setOpenSettingsTooltip}>
                   <Tooltip.Trigger asChild>
-                    <div className="cursor-pointer">
+                    <div
+                      className="cursor-pointer"
+                      onClick={() => setOpenSettingsTooltip(!openSettingsTooltip)}
+                    >
                       <IoSettingsOutline className="text-[20px] hover:opacity-80 hover:scale-110 transition-all duration-300" />
                     </div>
                   </Tooltip.Trigger>
@@ -521,23 +539,31 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
                       <div className="space-y-4">
                         {/* Account Info */}
                         <div className="flex items-center gap-3 pb-4 border-b border-[#ffffff2c]">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#932E75] to-[#95437D] flex items-center justify-center">
-                            <span className="text-white font-bold text-lg">
+                          <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center">
+                            {data?.profilePicUrl ||  data?.user?.profilePicUrl ?(
+                            <img src={data?.profilePicUrl || data?.user?.profilePicUrl} alt="dp" className="w-full h-full object-cover"/>
+
+                            ):(
+                               <span className="text-black font-bold text-lg">
                               {data?.username?.charAt(0)?.toUpperCase() ||
                                 data?.user?.username
                                   ?.charAt(0)
                                   ?.toUpperCase() ||
                                 "U"}
                             </span>
+                            )}
+                           
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="text-white font-semibold text-sm truncate">
-                              {data?.username || data?.user?.username || "User"}
+                             <div className="text-white font-semibold text-sm truncate">
+                              {data?.fullname || data?.user?.fullname || "User"}
+                            </div>
+                            <div className="text-white font-medium text-xs truncate">
+                              {data?.username || data?.user?.username }
                             </div>
                             <div className="text-white text-xs truncate">
                               {data?.email ||
-                                data?.user?.email ||
-                                "xyz@gmail.com"}
+                                data?.user?.email}
                             </div>
                           </div>
                         </div>
@@ -549,16 +575,16 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
                               Storage
                             </span>
                             <div className="flex items-center gap-1">
-                              <span className="text-white text-sm">
-                                100% left
+                              <span className={` ${isOverLimit && storageused>90 ? "text-red-500" : "text-white"} text-sm`}>
+                                {storageused}% Used
                               </span>
-                              <FiChevronDown className="w-4 h-4 text-gray-400" />
+                              {/* <FiChevronDown className="w-4 h-4 text-gray-400" /> */}
                             </div>
                           </div>
                           <div className="w-full h-2 bg-[#2c2d30] rounded-full overflow-hidden">
                             <div
-                              className="h-full bg-[#FDD78D] rounded-full transition-all"
-                              style={{ width: "78%" }}
+                              className={`h-full ${isOverLimit ? "bg-red-500" : "bg-[#FDD78D]"} rounded-full transition-all`}
+                              style={{ width: `${storageused}%` }}
                             ></div>
                           </div>
                           {/* <div className="flex items-center gap-2 text-xs text-gray-400">
@@ -573,7 +599,7 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
                             onClick={() => {
                               setOpenAccountSettings(true);
                             }}
-                            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-[#fafafa] text-sm font-medium transition-colors"
+                            className="flex-1 flex items-center  justify-center gap-2 px-3 py-2 rounded-lg bg-[#fafafa] text-sm font-medium transition-colors"
                           >
                             <IoSettingsOutline className="w-4 h-4" />
                             Settings
@@ -599,17 +625,21 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
                             <HiGift className="w-4 h-4" />
                             Billing & Payments
                           </button>
-                          <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-white text-sm transition-colors">
+                          {/* <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-white text-sm transition-colors">
                             <MdHelpOutline className="w-4 h-4" />
                             Help Center
-                          </button>
+                          </button> */}
 
                           <button
-                            onClick={() => setShowLogoutPopup(true)}
-                            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[#2c2d30] text-[#F16047] hover:text-[#ff6b57] text-sm font-medium transition-colors"
+                            onClick={() => {
+                              router.push("/home")
+                              setShowLogoutPopup(true)
+                            }
+                            }
+                            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[#2c2d30] text-[#fff] hover:text-[#fff] text-sm font-medium transition-colors"
                           >
                             <BsFillArrowUpLeftSquareFill className="w-4 h-4" />
-                            Back to Dashboard
+                            Back to Home
                           </button>
                         </div>
                       </div>
@@ -636,121 +666,27 @@ const MainLayoutContent: FC<MainLayoutProps> = ({ children }) => {
           </DialogContent>
         </Dialog>
 
-        {/* Invite Dialog - Custom Popup */}
-        {openInviteDialog && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Overlay with blur */}
-            <div
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in-0"
-              onClick={() => setOpenInviteDialog(false)}
-            />
+        {/* Invite Dialog - Advanced with Plugin Permissions */}
+        {openInviteDialog && serverId && adminId && (
+          <InviteUserDialog
+            serverId={serverId}
+            invitedBy={adminId}
+            plugins={plugindata}
+            onClose={() => setOpenInviteDialog(false)}
+            onInviteSuccess={() => {
+              setOpenInviteDialog(false);
+              getPlugins(); // Refresh plugins after invite
+            }}
+          />
+        )}
 
-            {/* Popup Content */}
-            <div
-              className="relative z-50 w-full max-w-[500px] bg-[#2d2d2d] backdrop-blur-xl border border-white/10 shadow-2xl rounded-[20px] text-white overflow-hidden animate-in "
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Close Button */}
-              <button
-                onClick={() => setOpenInviteDialog(false)}
-                className="absolute top-4  right-4 z-10 p-2 rounded-full hover:bg-white/10 transition-colors"
-              >
-                <IoClose className="w-5 h-5 text-white" />
-              </button>
-
-              {/* Header */}
-              <div className="px-6 pt-6 pb-4">
-                <h2 className="text-xl font-semibold text-white">
-                  Invite Members
-                </h2>
-              </div>
-
-              {/* Content */}
-              <div className="px-6 pb-6">
-                <Tabs defaultValue="invite" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 bg-[#1a1a1a]/50 border border-white/10 rounded-[14px] p-1">
-                    <TabsTrigger
-                      value="invite"
-                      className="data-[state=active]:bg-[#3d3d3d] data-[state=active]:text-white data-[state=active]:shadow-sm text-gray-400 rounded-[12px]"
-                    >
-                      Invite Members
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="requests"
-                      className="data-[state=active]:bg-[#3d3d3d] data-[state=active]:text-white data-[state=active]:shadow-sm text-gray-400 rounded-[12px]"
-                    >
-                      View Requests
-                    </TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="invite" className="mt-4 space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-300">
-                        Search by username or email
-                      </label>
-                      <div className="flex gap-2">
-                        <Input
-                          type="email"
-                          placeholder="Enter username or email address"
-                          value={inviteEmail}
-                          onChange={(e) => setInviteEmail(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              inviteMember();
-                            }
-                          }}
-                          className="flex-1 bg-[#1a1a1a] border-white/10 text-white placeholder:text-gray-500 focus:border-white/20 rounded-[12px]"
-                        />
-                        <Button
-                          onClick={inviteMember}
-                          className="bg-white hover:bg-gray-200 text-gray-900 rounded-[12px]"
-                        >
-                          Send
-                        </Button>
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-400">
-                      Enter the email address of the person you want to invite
-                      to this server.
-                    </p>
-                  </TabsContent>
-                  <TabsContent value="requests" className="mt-4">
-                    <div className="space-y-3 max-h-[400px] overflow-y-auto">
-                      {requests?.length === 0 ? (
-                        <div className="text-center py-8 text-gray-400">
-                          <GoPeople className="w-12 h-12 mx-auto mb-2 opacity-50 text-gray-500" />
-                          <p className="text-sm">No pending requests</p>
-                        </div>
-                      ) : (
-                        requests?.map((item, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center justify-between p-3 bg-[#1a1a1a] rounded-[14px] border border-white/10 hover:bg-[#252525] transition-colors"
-                          >
-                            <div className="flex-1">
-                              <div className="font-medium text-white">
-                                {item?.fullname}
-                              </div>
-                              <div className="text-sm text-gray-400">
-                                {item?.username}
-                              </div>
-                            </div>
-                            <Button
-                              onClick={() => {
-                                acceptrequest(item?._id);
-                              }}
-                              className="bg-white hover:bg-gray-200 text-gray-900 text-sm px-4 py-2 rounded-[12px]"
-                            >
-                              Accept
-                            </Button>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </div>
-            </div>
-          </div>
+        {/* Members Dialog */}
+        {openMembersDialog && serverId && (
+          <MembersDialog
+            serverId={serverId}
+            plugins={plugindata}
+            onClose={() => setOpenMembersDialog(false)}
+          />
         )}
       </div>
     </div>

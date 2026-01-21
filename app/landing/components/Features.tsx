@@ -81,7 +81,7 @@ const Features = () => {
             <div className="w-full sm:w-[40%] flex flex-col items-center justify-center h-full relative rounded-tl-[30px] sm:rounded-tl-[40px] md:rounded-tl-[50px] rounded-tr-[30px] sm:rounded-tr-none animate-fadeIn border-t border-l border-r border-[#EFEFEF] bg-[#fcfcfc]">
 <Image src={feature1} alt="feature1"  className="w-full h-[50%] object-contain"/>
 {/* text container */}
-<div className="h-[50%] w-full flex flex-col justify-center p-4">
+<div className="h-[50%] w-full  flex flex-col justify-center p-4">
 <div className="text-[#343434] text-[18px] font-bold font-space-grotesk">Plug and play System</div>
 <div className="text-[#343434] text-[14px] font-medium">Explore, choose, and add Modules to extend your Realm’s capabilities.
 Build a realm that fits your workflow or your fun.</div>

@@ -1,6 +1,36 @@
-import React from "react";
+"use client"
+import React, { useState, useEffect } from "react";
 
 const Howitworks = () => {
+  const [clickedStep, setClickedStep] = useState(0)
+  const steps = [
+
+    {
+      title: "Log in & create your account",
+      description: "Create a new realm with your own name and description."
+    },
+    {
+      title: "Create Realm",
+      description: "Create a new realm with your own name and description."
+    },
+    {
+      title: "Buy server",
+      description: "Create a new realm with your own name and description."
+    },
+    {
+      title: "Add on some extensions",
+      description: "Create a new realm with your own name and description."
+    },
+  ]
+
+  // Auto-rotate steps every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setClickedStep((prev) => (prev + 1) % steps.length);
+    }, 5000); // Change step every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [steps.length]);
   return (
     <>
       <style jsx>{`
@@ -31,9 +61,29 @@ const Howitworks = () => {
             fill="#F6F6F6"
           />
         </svg>
-        <div className="w-full h-full absolute space-y-4 flex justify-center">
-          <div className="w-[20%] h-[100%] rounded-l-3xl p-8">
-            <div className="p-4 w-full bg-[#F9D199] rounded-[20px]">
+        <div className="w-full h-full  absolute space-y-4 z-10 flex justify-center">
+          <div className="w-[20%] h-[100%]  rounded-l-3xl p-8">
+            {
+              steps?.map((d, i) => (
+                <div key={i} onClick={() => setClickedStep(i)} className={`p-4  cursor-pointer duration-500 transition-all ease-in w-full ${clickedStep === i ? "bg-[#F9D199]" : ""} rounded-[20px]`}>
+                  <div className="text-xl font-bold font-space-grotesk">
+                    {d?.title}
+                  </div>
+                  <div className="text-sm font-space-grotesk">
+                    Create a new realm with your own name and description.
+                  </div>
+                </div>
+              ))
+            }
+            {/* <div className="p-4  w-full bg-[#F9D199] rounded-[20px]">
+              <div className="text-xl font-bold font-space-grotesk">
+                Create Realm
+              </div>
+              <div className="text-sm font-space-grotesk">
+                Create a new realm with your own name and description.
+              </div>
+            </div>
+            <div className="p-4 w-full  rounded-[20px]">
               <div className="text-xl font-bold font-space-grotesk">
                 Create Realm
               </div>
@@ -49,25 +99,39 @@ const Howitworks = () => {
                 Create a new realm with your own name and description.
               </div>
             </div>
-            <div className="p-4 w-full rounded-[20px]">
+            <div className="p-4  w-full rounded-[20px]">
               <div className="text-xl font-bold font-space-grotesk">
                 Create Realm
               </div>
               <div className="text-sm font-space-grotesk">
                 Create a new realm with your own name and description.
               </div>
-            </div>
-            <div className="p-4 w-full rounded-[20px]">
-              <div className="text-xl font-bold font-space-grotesk">
-                Create Realm
-              </div>
-              <div className="text-sm font-space-grotesk">
-                Create a new realm with your own name and description.
-              </div>
-            </div>
+            </div> */}
           </div>
           <div className="w-[40%] h-[70%] rounded-r-3xl p-8 ">
-            <div className="h-[95%] w-full bg-[#000000] rounded-[40px]"></div>
+            <div className="h-[95%] w-full bg-[#000] border-[#1B1C1E] rounded-[40px] overflow-hidden">
+              {/* Add video here */}
+              <video
+                ref={(el) => {
+                  if (el) {
+                    el.load(); // Force reload on source change
+                    el.play().catch(e => console.log("Autoplay prevented:", e));
+                  }
+                }}
+                key={clickedStep}
+                onEnded={() => {
+                  setClickedStep((prev) => (prev + 1) % steps.length);
+                }}
+                autoPlay
+                muted
+                playsInline
+                preload="auto"
+                className="w-full h-full object-cover rounded-[40px]"
+              >
+                <source src={clickedStep === 0 ? "/vedo1.mp4" : clickedStep === 1 ? "/vedo2.mp4" : clickedStep === 2 ? "/vedo3.mp4" : clickedStep === 3 ? "/vedo4.mp4" : ""} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            </div>
           </div>
         </div>
       </div>

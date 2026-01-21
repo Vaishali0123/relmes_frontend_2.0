@@ -118,6 +118,7 @@ function Requirement() {
           ...card,
           id: `${i}-${card.id}`,
           originalIndex: index,
+          globalIndex: i * originalCards.length + index, // Continuous index across all sets
         }))
       );
     }
@@ -129,140 +130,71 @@ function Requirement() {
     <>
       <style jsx>
         {`
-          @keyframes card {
-            0% {
-              left: 40%;
-              top: 80%;
-            }
-            100% {
-              top: 10%;
-              left: 80%;
-            }
+          @keyframes snake-wave {
+            0% { transform: translateY(0px); }
+            25% { transform: translateY(-20px); }
+            50% { transform: translateY(0px); }
+            75% { transform: translateY(20px); }
+            100% { transform: translateY(0px); }
           }
-          .animate-card {
-            position: relative;
-            animation: card 2s ease-in-out forwards;
+          .snake-card {
+            animation: snake-wave 2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
           }
           @keyframes scroll-left {
-            0% {
-              transform: translateX(0);
-            }
-            100% {
-              transform: translateX(-50%);
-            }
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
           }
           .scroll-container {
             display: flex;
-            animation: scroll-left 30s linear infinite;
+            animation: scroll-left 20s linear infinite;
           }
-
           @keyframes scroll-left-reverse {
-            0% {
-              transform: translateX(-50%);
-            }
-            100% {
-              transform: translateX(0);
-            }
+            0% { transform: translateX(-50%); }
+            100% { transform: translateX(0); }
           }
           .scroll-container-reverse {
             display: flex;
-            animation: scroll-left-reverse 30s linear infinite;
-          }
-          @keyframes card-snake {
-            0% {
-              transform: translate(0%, 0%);
-            }
-            25% {
-              transform: translate(25%, 50%);
-            }
-            50% {
-              transform: translate(50%, 0%);
-            }
-            75% {
-              transform: translate(75%, 50%);
-            }
-            100% {
-              transform: translate(100%, 0%);
-            }
-          }
-          .card-snake {
-            position: relative;
-            animation: card-snake 2s ease-in-out infinite;
-          }
-          @keyframes card-snake {
-            0% {
-              transform: translate(100%, 0%);
-            }
-            25% {
-              transform: translate(75%, 50%);
-            }
-            50% {
-              transform: translate(50%, 0%);
-            }
-            75% {
-              transform: translate(25%, 50%);
-            }
-            100% {
-              transform: translate(0%, 0%);
-            }
-          }
-          .card-snake-reverse {
-            position: relative;
-            animation: card-snake-reverse 2s ease-in-out infinite;
+            animation: scroll-left-reverse 20s linear infinite;
           }
         `}
       </style>
       <div className="w-full h-[80vh]  flex flex-col items-center justify-center">
-        <div className="w-full h-[30%] overflow-hidden flex flex-row gap-10  relative">
-          <div className="scroll-container flex flex-row gap-10">
-            {/* {cards?.map((d, i) => (
-              <div
-                key={d.id}
-                className="w-[70px] h-[100px] relative bg-blue-500 rounded-lg flex-shrink-0"
-              >
-                <div className="w-[70px] h-[100px] relative bg-blue-300 top-2 rounded-lg left-2"></div>
-              </div>
-            ))} */}
-            {/* <div
-                // key={`duplicate-${d.id}`}
-                className="w-[70px] card-snake h-[100px] relative bg-blue-500 rounded-lg flex-shrink-0"
-                // style={{
-                //   animationDelay: `${i * 0.20}s`, // stagger motion!
-                // }}
-            >
-
-
-                <div className="w-[70px] h-[100px] relative bg-blue-300 top-2 rounded-lg left-2"></div>
-              </div> */}
+        {/* Top Row */}
+        <div className="w-full h-[30%]  items-center overflow-hidden flex flex-row relative">
+          <div className="scroll-container">
             {infiniteCards?.map((d, i) => (
               <div
-                key={`duplicate-${d.id}`}
-                className="w-[70px] card-snake h-[100px] relative  rounded-lg flex-shrink-0"
+                key={`top-${i}`}
+                className="w-[70px]  snake-card h-[100px] relative rounded-lg flex-shrink-0 mx-4"
                 style={{
-                  animationDelay: `${(d.originalIndex || i) * 0.2}s`, // stagger motion!
+                  animationDelay: `${i * -0.2}s`, // Negative delay for instant wave
                 }}
               >
-                <div className="w-[70px] h-[100px] relative bg-black  top-2 rounded-lg left-2"></div>
+                <div className="w-[70px] h-[100px] relative bg-black top-2 rounded-lg left-2"></div>
               </div>
             ))}
           </div>
         </div>
+
+        {/* Center Text */}
         <div className="w-[40%] h-[40%] font-space-grotesk flex text-center flex-col items-center justify-center">
           <div className="text-[30px] font-bold">Requirement</div>
           <div className="text-[30px] font-bold">or</div>
           <div className="text-[30px] font-bold">Creation</div>
         </div>
-        <div className="w-full h-[30%] overflow-hidden flex flex-row gap-10  relative">
-          <div className="scroll-container-reverse flex flex-row gap-10">
+
+        {/* Bottom Row */}
+        <div className="w-full h-[30%] items-center overflow-hidden flex flex-row relative">
+          <div className="scroll-container-reverse">
             {infiniteCards?.map((d, i) => (
               <div
-                key={`duplicate-${d.id}`}
-                className="w-[70px] card-snake h-[100px] relative  rounded-lg flex-shrink-0"
+                key={`bottom-${i}`}
+                className="w-[70px] snake-card h-[100px] relative rounded-lg flex-shrink-0 mx-4"
                 style={{
-                  animationDelay: `${(d.originalIndex || i) * 0.2}s`, // stagger motion!
+                  animationDelay: `${i * -0.2}s`,
                 }}
               >
-                <div className="w-[70px] h-[100px] relative bg-black  top-2 rounded-lg left-2"></div>
+                <div className="w-[70px] h-[100px] relative bg-black top-2 rounded-lg left-2"></div>
               </div>
             ))}
           </div>

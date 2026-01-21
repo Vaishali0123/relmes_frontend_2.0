@@ -65,6 +65,52 @@ const Page = () => {
   };
   const [openPopup, setOpenpopup] = useState(false)
 
+
+  const PLACEHOLDERS = [
+    "Discover servers to join and contribute to team success",
+    "Discover Relmes to collaborate, create, and grow",
+    "Explore Relmes built for work, play, and everything in between",
+    "Find Relmes where teams turn ideas into action",
+    "Browse Relmes created by people like you",
+    "Discover spaces designed to move together",
+  ];
+
+  const [placeholderText, setPlaceholderText] = useState("");
+  const [loopNum, setLoopNum] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [delta, setDelta] = useState(100);
+
+  useEffect(() => {
+    let ticker = setInterval(() => {
+      tick();
+    }, delta);
+
+    return () => clearInterval(ticker);
+  }, [placeholderText, delta]);
+
+  const tick = () => {
+    let i = loopNum % PLACEHOLDERS.length;
+    let fullText = PLACEHOLDERS[i];
+    let updatedText = isDeleting
+      ? fullText.substring(0, placeholderText.length - 1)
+      : fullText.substring(0, placeholderText.length + 1);
+
+    setPlaceholderText(updatedText);
+
+    if (isDeleting) {
+      setDelta((prev) => prev / 2);
+    }
+
+    if (!isDeleting && updatedText === fullText) {
+      setIsDeleting(true);
+      setDelta(2000);
+    } else if (isDeleting && updatedText === "") {
+      setIsDeleting(false);
+      setLoopNum(loopNum + 1);
+      setDelta(100);
+    }
+  };
+
   return (
     <div onClick={() => { setOpenpopup(false) }} className="flex sm:items-center  pn:max-sm:items-start justify-center w-full h-full">
       <div className="sm:w-full flex  flex-col items-center p-4 sm:justify-center pn:max-sm:p-0 pn:max-sm:h-auto pn:max-sm:overflow-y-auto no-scrollbar">
@@ -112,10 +158,10 @@ const Page = () => {
                       setOpenpopup(true)
                     }}
                     type="text"
-                    placeholder="Discover servers to join and contribute to team success"
-                    className="h-[50px]  p-2 w-full outline-none text-[15px] pl-4 bg-white rounded-[20px] text-[#364141] "
+                    placeholder={placeholderText}
+                    className="h-[50px] p-2 w-full outline-none text-[15px] pl-4 bg-white rounded-[20px] text-[#364141] placeholder:text-gray-400 border-2 border-transparent focus:border-[#F9D199] transition-all duration-300"
                   />
-                  <div className="w-[55px] h-[50px] bg-[#FDD78D] flex items-center justify-center rounded-[20px]">
+                  <div className="w-[55px] h-[50px] bg-[#F9D199] flex items-center justify-center rounded-[20px]">
                     <IoSearch className="text-[25px] text-[#364141]" />
                   </div>
                 </div>
@@ -124,7 +170,7 @@ const Page = () => {
               <hr className="border-[#333]" />
               <Link
                 href="../serverCreation"
-                className="h-[50px] font-space-grotesk z-20 w-[280px] p-2 flex items-center justify-center  outline-none text-[15px] bg-[#FDD78D] rounded-[20px] text-[#364141] "
+                className="h-[50px] font-space-grotesk z-20 w-[280px] p-2 flex items-center justify-center  outline-none text-[15px] bg-[#F9D199] rounded-[20px] text-[#364141] "
               >
                 Create your own Relm
                 {/* <span className="text-[12px] px-1"> (Server)</span> */}
@@ -136,7 +182,7 @@ const Page = () => {
               </div>
               {/* Fetch plugins */}
               <div className="h-full w-[50%] p-2   flex gap-2 items-center justify-center rounded-3xl">
-                {pluginData?.map((d:PluginData, i) => (
+                {pluginData?.map((d: PluginData, i) => (
                   <div key={i} className="flex flex-col items-center justify-center h-full w-full">
                     <div className="h-full w-full rounded-[25px] rotate-6 relative">
                       <div className="absolute top-2 left-2 w-[60%] h-[80%] bg-[#eeeeee] rounded-[5px]">
